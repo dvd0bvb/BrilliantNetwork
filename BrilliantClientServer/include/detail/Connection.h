@@ -6,6 +6,7 @@
 #include "detail/GeneralConcepts.h"
 #include "detail/Message.h"
 #include "detail/Queue.h"
+#include "BrilliantServer.h"
 
 namespace BrilliantNetwork
 {
@@ -66,7 +67,7 @@ namespace BrilliantNetwork
 					[this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
 						if (!ec)
 						{
-							ReadValidation();
+							ReadValidation<Server<T>>();
 						}
 						else
 						{
@@ -232,10 +233,11 @@ namespace BrilliantNetwork
 			);
 		}
 
-		void ReadValidation(BrilliantNetwork::Server<T>* server = nullptr)
+		template<class Server>
+		void ReadValidation(Server* server = nullptr)
 		{
 			asio::async_read(mSocket, asio::buffer(&mHandshakeIn, sizeof(std::uint64_t)),
-				[this](std::error_code ec, std::size_t length) {
+				[this, server](std::error_code ec, std::size_t length) {
 					if (!ec)
 					{
 						if (iParent == owner::server)
@@ -243,7 +245,7 @@ namespace BrilliantNetwork
 							if (mHandshakeIn == mHandshakeCheck)
 							{
 								std::cout << "Client Validated" << std::endl;
-								//server->OnClientValidated(this->shared_from_this());
+								server->OnClientValidated(this->shared_from_this());
 								ReadHeader();
 							}
 						}
