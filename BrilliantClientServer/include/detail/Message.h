@@ -35,6 +35,15 @@ namespace BrilliantNetwork
 			return msg;
 		}
 
+		friend Message<T>& operator<< (Message<T>& msg, const std::vector<uint8_t>& data)
+		{
+			const auto i = msg.mBody.size();
+			msg.mBody.resize(i + data.size());
+			msg.mBody.insert(msg.mBody.end(), data.begin(), data.end());
+			msg.mHeader.iSize = msg.Size();
+			return msg;
+		}
+
 		template<TriviallyCopiable U>
 		friend Message<T>& operator>> (Message<T>& msg, U u)
 		{

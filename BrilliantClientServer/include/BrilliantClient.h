@@ -31,12 +31,12 @@ namespace BrilliantNetwork
 
 				mConnection = std::make_unique<Connection<T>>(Connection<T>::owner::client, mContext, asio::ip::tcp::socket(mContext), qMessagesIn);
 				mConnection->ConnectToServer(endpoint);
-				mContextThread = std::thread([&]() { mContext.run(); });
+				mContextThread = std::thread([this]() { mContext.run(); });
 				return true;
 			}
 			catch (const std::exception& e)
 			{
-				std::cerr << e.what() << '\n';
+				std::cerr << "Error:" << e.what() << '\n';
 				return false;
 			}
 		}
