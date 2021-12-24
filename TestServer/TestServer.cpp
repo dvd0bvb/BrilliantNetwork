@@ -13,7 +13,7 @@ int main()
 	return 0;
 }
 
-void TestServer::OnMessage(std::shared_ptr<BrilliantNetwork::Connection<TestMessage>> client, BrilliantNetwork::Message<TestMessage>& msg)
+void TestServer::OnMessage(std::shared_ptr<Brilliant::Connection<TestMessage>> client, Brilliant::Message<TestMessage>& msg)
 {
 	switch (msg.mHeader.tId)
 	{

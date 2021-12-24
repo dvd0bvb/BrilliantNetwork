@@ -4,7 +4,7 @@
 #include <memory>
 #include "detail/GeneralConcepts.h"
 
-namespace BrilliantNetwork
+namespace Brilliant
 {
 	template<class T>
 	struct message_header

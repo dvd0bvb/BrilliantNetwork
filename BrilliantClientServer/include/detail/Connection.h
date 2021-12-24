@@ -8,7 +8,7 @@
 #include "detail/Queue.h"
 #include "BrilliantServer.h"
 
-namespace BrilliantNetwork
+namespace Brilliant
 {
 	template<class T> class Server;
 

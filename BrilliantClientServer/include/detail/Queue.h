@@ -3,7 +3,7 @@
 #include <deque>
 #include <mutex>
 
-namespace BrilliantNetwork
+namespace Brilliant
 {
 	template<class T>
 	class Queue

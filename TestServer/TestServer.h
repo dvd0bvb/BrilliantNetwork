@@ -5,13 +5,13 @@
 
 namespace
 {
-	class TestServer : public BrilliantNetwork::Server<TestMessage>
+	class TestServer : public Brilliant::Server<TestMessage>
 	{
 	public:
-		TestServer(std::uint16_t iPort) : BrilliantNetwork::Server<TestMessage>(iPort) {}
+		TestServer(std::uint16_t iPort) : Brilliant::Server<TestMessage>(iPort) {}
 
-		bool OnClientConnect(std::shared_ptr<BrilliantNetwork::Connection<TestMessage>> client) override { return true; }
+		bool OnClientConnect(std::shared_ptr<Brilliant::Connection<TestMessage>> client) override { return true; }
 
-		void OnMessage(std::shared_ptr<BrilliantNetwork::Connection<TestMessage>> client, BrilliantNetwork::Message<TestMessage>& msg) override;
+		void OnMessage(std::shared_ptr<Brilliant::Connection<TestMessage>> client, Brilliant::Message<TestMessage>& msg) override;
 	};
 }

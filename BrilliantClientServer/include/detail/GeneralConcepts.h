@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace BrilliantNetwork
+namespace Brilliant
 {
 	template<class T>
 	concept EnumType = std::is_enum_v<T>; 

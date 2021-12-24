@@ -6,7 +6,7 @@
 #include "detail/Message.h"
 #include "detail/Connection.h"
 
-namespace BrilliantNetwork
+namespace Brilliant
 {
 	template<class T>
 	class Client
