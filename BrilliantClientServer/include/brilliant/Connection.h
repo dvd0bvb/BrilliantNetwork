@@ -9,9 +9,6 @@
 #include "brilliant/Queue.h"
 #include "brilliant/Common.h"
 
-//TODO: solve this circular dependency
-#include "BrilliantServer.h"
-
 namespace Brilliant
 {
 	template<class T> class Server;
@@ -71,7 +68,7 @@ namespace Brilliant
 					[this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
 						if (!ec)
 						{
-							ReadValidation<Server<T>>();
+							ReadValidation();
 						}
 						else
 						{
@@ -237,8 +234,8 @@ namespace Brilliant
 			);
 		}
 
-		template<class Server>
-		void ReadValidation(Server* server = nullptr)
+		template<class T>
+		void ReadValidation(T* server)
 		{
 			asio::async_read(mSocket, asio::buffer(&mHandshakeIn, sizeof(std::uint64_t)),
 				[this, server](std::error_code ec, std::size_t length) {
@@ -253,7 +250,23 @@ namespace Brilliant
 								ReadHeader();
 							}
 						}
-						else
+					}
+					else
+					{
+						BCS_LOG(LogLevel::Error) << "Client Disconnected (Read Validation) " << ec.message();
+						mSocket.close();
+					}
+				}
+			);
+		}
+
+		void ReadValidation()
+		{
+			asio::async_read(mSocket, asio::buffer(&mHandshakeIn, sizeof(std::uint64_t)),
+				[this](std::error_code ec, std::size_t length) {
+					if (!ec)
+					{
+						if (iParent == owner::client)
 						{
 							mHandshakeOut = Scramble(mHandshakeIn);
 							WriteValidation();
@@ -264,8 +277,7 @@ namespace Brilliant
 						BCS_LOG(LogLevel::Error) << "Client Disconnected (Read Validation) " << ec.message();
 						mSocket.close();
 					}
-				}
-			);
+				});
 		}
 
 		std::uint32_t mId = 0;
