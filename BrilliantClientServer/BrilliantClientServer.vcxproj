@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include\detail;C:\Users\6davi\source\repos\asio-1.18.1\include</IncludePath>
+    <IncludePath>include\detail;..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include\detail;C:\Users\6davi\source\repos\asio-1.18.1\include</IncludePath>
+    <IncludePath>include\detail;..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include\detail;C:\Users\6davi\source\repos\asio-1.18.1\include</IncludePath>
+    <IncludePath>include\detail;..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include\detail;C:\Users\6davi\source\repos\asio-1.18.1\include</IncludePath>
+    <IncludePath>include\detail;..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,6 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,6 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Common.h" />
     <ClInclude Include="include\BrilliantClient.h" />
     <ClInclude Include="include\detail\GeneralConcepts.h" />
     <ClInclude Include="include\detail\Message.h" />

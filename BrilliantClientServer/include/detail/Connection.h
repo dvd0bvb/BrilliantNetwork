@@ -6,6 +6,9 @@
 #include "detail/GeneralConcepts.h"
 #include "detail/Message.h"
 #include "detail/Queue.h"
+#include "detail/Common.h"
+
+//TODO: solve this circular dependency
 #include "BrilliantServer.h"
 
 namespace Brilliant
@@ -71,7 +74,7 @@ namespace Brilliant
 						}
 						else
 						{
-							std::cout << "Failed to connect to server: " << ec.message() << '\n';
+							BCS_LOG() << "Failed to connect to server: " << ec.message();
 						}
 					});
 			}
@@ -121,7 +124,7 @@ namespace Brilliant
 					}
 					else
 					{
-						std::cout << "[" << mId << "] Read header fail\n";
+						BCS_LOG(LogLevel::Error) << "[" << mId << "] Read header fail";
 						mSocket.close();
 					}
 				});
@@ -137,7 +140,7 @@ namespace Brilliant
 			}
 			else
 			{
-				std::cout << "[" << mId << "] Read body fail\n";
+				BCS_LOG(LogLevel::Error) << "[" << mId << "] Read body fail";
 				mSocket.close();
 			}
 		}
@@ -164,7 +167,7 @@ namespace Brilliant
 					}
 					else
 					{
-						std::cout << "[" << mId << "] Write header failed\n";
+						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write header failed";
 						mSocket.close();
 					}
 				});
@@ -185,7 +188,7 @@ namespace Brilliant
 					}
 					else
 					{
-						std::cout << "[" << mId << "] Write body failed\n";
+						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write body failed";
 						mSocket.close();
 					}
 				});
@@ -226,7 +229,7 @@ namespace Brilliant
 					}
 					else
 					{
-						std::cout << "Disconnected (WriteValidation): " << ec.message() << '\n';
+						BCS_LOG(LogLevel::Error) << "Disconnected (WriteValidation): " << ec.message();
 						mSocket.close();
 					}
 				}
@@ -244,7 +247,7 @@ namespace Brilliant
 						{
 							if (mHandshakeIn == mHandshakeCheck)
 							{
-								std::cout << "Client Validated" << std::endl;
+								BCS_LOG() << "Client Validated";
 								server->OnClientValidated(this->shared_from_this());
 								ReadHeader();
 							}
@@ -257,7 +260,7 @@ namespace Brilliant
 					}
 					else
 					{
-						std::cout << "Client Disconnected (Read Validation) " << ec.message() << std::endl;
+						BCS_LOG(LogLevel::Error) << "Client Disconnected (Read Validation) " << ec.message();
 						mSocket.close();
 					}
 				}

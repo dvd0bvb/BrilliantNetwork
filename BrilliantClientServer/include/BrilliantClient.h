@@ -5,6 +5,7 @@
 #include "detail/Queue.h"
 #include "detail/Message.h"
 #include "detail/Connection.h"
+#include "detail/Common.h"
 
 namespace Brilliant
 {
@@ -36,7 +37,7 @@ namespace Brilliant
 			}
 			catch (const std::exception& e)
 			{
-				std::cerr << "Error:" << e.what() << '\n';
+				BCS_LOG(LogLevel::Error) << "Error:" << e.what();
 				return false;
 			}
 		}

@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\TestCommon;C:\Users\6davi\source\repos\asio-1.18.1\include;C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\TestCommon;C:\Users\6davi\source\repos\asio-1.18.1\include;C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\TestCommon;C:\Users\6davi\source\repos\asio-1.18.1\include;C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\6davi\source\repos\BrilliantClientServer\TestCommon;C:\Users\6davi\source\repos\asio-1.18.1\include;C:\Users\6davi\source\repos\BrilliantClientServer\BrilliantClientServer\include</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -93,6 +93,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,6 +109,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +125,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,6 +141,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -36,5 +36,8 @@
     <ClInclude Include="include\detail\GeneralConcepts.h">
       <Filter>Header Files\detail</Filter>
     </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files\detail</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

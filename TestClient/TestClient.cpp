@@ -38,7 +38,7 @@ int main()
 					auto now = std::chrono::system_clock::now();
 					std::chrono::system_clock::time_point then;
 					msg >> then;
-					std::cout << "Ping: " << std::chrono::duration<double>(now - then).count() << '\n';
+					std::cout << "Ping: " << std::chrono::duration<double>(now - then).count();
 					break;
 				}
 			}

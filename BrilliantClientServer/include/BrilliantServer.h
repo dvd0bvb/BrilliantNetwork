@@ -6,6 +6,7 @@
 #include "detail/Connection.h"
 #include "detail/Queue.h"
 #include "detail/Message.h"
+#include "detail/Common.h"
 
 namespace Brilliant
 {
@@ -32,11 +33,11 @@ namespace Brilliant
 			}
 			catch (const std::exception& e)
 			{
-				std::cerr << "[SERVER] Exception: " << e.what() << '\n';
+				BCS_LOG(LogLevel::Error) << "[SERVER] Exception: " << e.what();
 				return false;
 			}
 
-			std::cout << "Server connected\n";
+			BCS_LOG() << "Server connected";
 			return true;
 		}
 
@@ -47,7 +48,7 @@ namespace Brilliant
 			{
 				mContextThread.join();
 			}
-			std::cout << "Server stopped\n";
+			BCS_LOG() << "Server stopped";
 		}
 
 		void WaitForClientConnection()
@@ -55,23 +56,23 @@ namespace Brilliant
 			mAcceptor.async_accept([&](std::error_code ec, asio::ip::tcp::socket socket) {
 				if (!ec)
 				{
-					std::cout << "[Server] New connection: " << socket.remote_endpoint() << '\n';
+					BCS_LOG() << "[Server] New connection: " << socket.remote_endpoint();
 					auto pNewConnection = std::make_shared<Connection<T>>(Connection<T>::owner::server, mContext, std::move(socket), mMsgQueueIn);
 
 					if (OnClientConnect(pNewConnection))
 					{
 						mConnections.push_back(std::move(pNewConnection));
 						mConnections.back()->ConnectToClient(this, iIdCounter++);
-						std::cout << "[" << mConnections.back()->GetId() << "] Connection approved\n";
+						BCS_LOG() << "[" << mConnections.back()->GetId() << "] Connection approved";
 					}
 					else
 					{
-						std::cout << "Connection denied\n";
+						BCS_LOG() << "Connection denied";
 					}
 				}
 				else
 				{
-					std::cout << "[Server] New connection error: " << ec.message() << '\n';
+					BCS_LOG(LogLevel::Error) << "[Server] New connection error: " << ec.message();
 				}
 
 				WaitForClientConnection();
