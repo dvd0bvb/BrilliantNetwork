@@ -1,12 +1,13 @@
-#pragma once
+#ifndef BRILLIANTCLIENTSERVER_CONNECTION_H
+#define BRILLIANTCLIENTSERVER_CONNECTION_H
 
 #include <iostream>
 #include <stdint.h>
 #include "asio.hpp"
-#include "detail/GeneralConcepts.h"
-#include "detail/Message.h"
-#include "detail/Queue.h"
-#include "detail/Common.h"
+#include "brilliant/GeneralConcepts.h"
+#include "brilliant/Message.h"
+#include "brilliant/Queue.h"
+#include "brilliant/Common.h"
 
 //TODO: solve this circular dependency
 #include "BrilliantServer.h"
@@ -283,3 +284,5 @@ namespace Brilliant
 		Queue<OwnedMessage<T>>& mInQueue;
 	};
 }
+
+#endif

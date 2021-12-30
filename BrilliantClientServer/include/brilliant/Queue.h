@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRILLIANTCLIENTSERVER_QUEUE_H
+#define BRILLIANTCLIENTSERVER_QUEUE_H
 
 #include <deque>
 #include <mutex>
@@ -96,3 +97,5 @@ namespace Brilliant
 		std::mutex mBlockingMutex;
 	};
 }
+
+#endif

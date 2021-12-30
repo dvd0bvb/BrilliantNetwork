@@ -147,13 +147,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Common.h" />
     <ClInclude Include="include\BrilliantClient.h" />
-    <ClInclude Include="include\detail\GeneralConcepts.h" />
-    <ClInclude Include="include\detail\Message.h" />
-    <ClInclude Include="include\detail\Connection.h" />
-    <ClInclude Include="include\detail\Queue.h" />
     <ClInclude Include="include\BrilliantServer.h" />
+    <ClInclude Include="include\brilliant\Common.h" />
+    <ClInclude Include="include\brilliant\Connection.h" />
+    <ClInclude Include="include\brilliant\GeneralConcepts.h" />
+    <ClInclude Include="include\brilliant\Message.h" />
+    <ClInclude Include="include\brilliant\Queue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

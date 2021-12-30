@@ -1,12 +1,13 @@
-#pragma once
+#ifndef BRILLIANTCLIENTSERVER_BRILLIANTSERVER_H
+#define BRILLIANTCLIENTSERVER_BRILLIANTSERVER_H
 
 #include <iostream>
 #include <memory>
 #include "asio.hpp"
-#include "detail/Connection.h"
-#include "detail/Queue.h"
-#include "detail/Message.h"
-#include "detail/Common.h"
+#include "brilliant/Connection.h"
+#include "brilliant/Queue.h"
+#include "brilliant/Message.h"
+#include "brilliant/Common.h"
 
 namespace Brilliant
 {
@@ -164,3 +165,5 @@ namespace Brilliant
 		std::uint32_t iIdCounter = 10000;
 	};
 }
+
+#endif

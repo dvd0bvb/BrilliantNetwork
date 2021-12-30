@@ -13,31 +13,31 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\detail">
+    <Filter Include="Header Files\brilliant">
       <UniqueIdentifier>{92963a37-0e84-45e2-ab76-c4d810ffa0bc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\detail\Message.h">
-      <Filter>Header Files\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="include\detail\Queue.h">
-      <Filter>Header Files\detail</Filter>
-    </ClInclude>
     <ClInclude Include="include\BrilliantServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\BrilliantClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\detail\Connection.h">
-      <Filter>Header Files\detail</Filter>
+    <ClInclude Include="include\brilliant\GeneralConcepts.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="include\detail\GeneralConcepts.h">
-      <Filter>Header Files\detail</Filter>
+    <ClInclude Include="include\brilliant\Message.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Header Files\detail</Filter>
+    <ClInclude Include="include\brilliant\Queue.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brilliant\Common.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brilliant\Connection.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

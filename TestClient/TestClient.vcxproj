@@ -96,7 +96,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
-      <AdditionalIncludeDirectories>..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
@@ -115,7 +115,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
-      <AdditionalIncludeDirectories>..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
@@ -134,7 +134,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
-      <AdditionalIncludeDirectories>..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
@@ -153,7 +153,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
-      <AdditionalIncludeDirectories>..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\BrilliantClientServer\include;..\TestCommon;</AdditionalIncludeDirectories>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>

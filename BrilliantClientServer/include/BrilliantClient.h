@@ -1,11 +1,12 @@
-#pragma once
+#ifndef BRILLIANTCLIENTSERVER_BRILLIANTCLIENT_H
+#define BRILLIANTCLIENTSERVER_BRILLIANTCLIENT_H
 
 #include <iostream>
 #include "asio.hpp"
-#include "detail/Queue.h"
-#include "detail/Message.h"
-#include "detail/Connection.h"
-#include "detail/Common.h"
+#include "brilliant/Queue.h"
+#include "brilliant/Message.h"
+#include "brilliant/Connection.h"
+#include "brilliant/Common.h"
 
 namespace Brilliant
 {
@@ -82,3 +83,5 @@ namespace Brilliant
 		Queue<OwnedMessage<T>> qMessagesIn;
 	};
 }
+
+#endif

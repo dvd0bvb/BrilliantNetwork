@@ -1,8 +1,9 @@
-#pragma once
+#ifndef BRILLIANTCLIENTSERVER_MESSAGE_H
+#define BRILLIANTCLIENTSERVER_MESSAGE_H
 
 #include <vector>
 #include <memory>
-#include "detail/GeneralConcepts.h"
+#include "brilliant/GeneralConcepts.h"
 
 namespace Brilliant
 {
@@ -65,3 +66,5 @@ namespace Brilliant
 		std::shared_ptr<Connection<T>> conn;
 	};
 }
+
+#endif
