@@ -1,13 +1,12 @@
 #ifndef BRILLIANTCLIENTSERVER_BRILLIANTSERVER_H
 #define BRILLIANTCLIENTSERVER_BRILLIANTSERVER_H
 
-#include <iostream>
 #include <memory>
-#include "asio.hpp"
+
+#include "brilliant/Common.h"
 #include "brilliant/Connection.h"
 #include "brilliant/Queue.h"
 #include "brilliant/Message.h"
-#include "brilliant/Common.h"
 
 namespace Brilliant
 {
@@ -15,9 +14,10 @@ namespace Brilliant
 	class Server
 	{
 	public:
-		Server(std::uint16_t iPort) : mAcceptor(mContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), iPort))
+		Server(std::uint16_t iPort) : mSslContext(ssl::context::sslv23_server), mAcceptor(mContext, tcp::endpoint(tcp::v4(), iPort))
 		{
-
+			mSslContext.set_verify_mode(ssl::context::verify_none);
+			//mSslContext.set_default_verify_paths();
 		}
 
 		virtual ~Server()
@@ -54,11 +54,11 @@ namespace Brilliant
 
 		void WaitForClientConnection()
 		{
-			mAcceptor.async_accept([&](std::error_code ec, asio::ip::tcp::socket socket) {
+			mAcceptor.async_accept([&](std::error_code ec, tcp::socket socket) {
 				if (!ec)
 				{
 					BCS_LOG() << "[Server] New connection: " << socket.remote_endpoint();
-					auto pNewConnection = std::make_shared<Connection<T>>(Connection<T>::owner::server, mContext, std::move(socket), mMsgQueueIn);
+					auto pNewConnection = std::make_shared<Connection<T>>(Connection<T>::owner::server, mContext, ssl::stream<tcp::socket>(std::move(socket), mSslContext), mMsgQueueIn);
 
 					if (OnClientConnect(pNewConnection))
 					{
@@ -160,6 +160,7 @@ namespace Brilliant
 		Queue<OwnedMessage<T>> mMsgQueueIn;
 		std::deque<std::shared_ptr<Connection<T>>> mConnections;
 		asio::io_context mContext;
+		ssl::context mSslContext;
 		std::thread mContextThread;
 		asio::ip::tcp::acceptor mAcceptor;
 		std::uint32_t iIdCounter = 10000;

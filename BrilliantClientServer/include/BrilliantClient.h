@@ -1,12 +1,10 @@
 #ifndef BRILLIANTCLIENTSERVER_BRILLIANTCLIENT_H
 #define BRILLIANTCLIENTSERVER_BRILLIANTCLIENT_H
 
-#include <iostream>
-#include "asio.hpp"
+#include "brilliant/Common.h"
 #include "brilliant/Queue.h"
 #include "brilliant/Message.h"
 #include "brilliant/Connection.h"
-#include "brilliant/Common.h"
 
 namespace Brilliant
 {
@@ -14,9 +12,10 @@ namespace Brilliant
 	class Client
 	{
 	public:
-		Client() : mSocket(mContext)
+		Client() : mSslContext(ssl::context::sslv23_client), mSocket(mContext, mSslContext)
 		{
-
+			mSslContext.set_verify_mode(ssl::context::verify_none);
+			mSocket.set_verify_mode(ssl::verify_none);
 		}
 
 		virtual ~Client()
@@ -31,7 +30,7 @@ namespace Brilliant
 				asio::ip::tcp::resolver resolver(mContext);
 				auto endpoint = resolver.resolve(sHost, std::to_string(iPort));
 
-				mConnection = std::make_unique<Connection<T>>(Connection<T>::owner::client, mContext, asio::ip::tcp::socket(mContext), qMessagesIn);
+				mConnection = std::make_unique<Connection<T>>(Connection<T>::owner::client, mContext, ssl::stream<tcp::socket>(mContext, mSslContext), qMessagesIn);
 				mConnection->ConnectToServer(endpoint);
 				mContextThread = std::thread([this]() { mContext.run(); });
 				return true;
@@ -75,8 +74,9 @@ namespace Brilliant
 
 	protected:
 		asio::io_context mContext;
+		ssl::context mSslContext;
 		std::thread mContextThread;
-		asio::ip::tcp::socket mSocket;
+		ssl::stream<tcp::socket> mSocket;
 		std::unique_ptr<Connection<T>> mConnection;
 
 	private:

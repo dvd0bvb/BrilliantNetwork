@@ -2,15 +2,25 @@
 
 int main()
 {
-	TestServer server(60000);
-	server.Start();
-
-	while (1)
+	try
 	{
-		server.Update(-1,true);
-	}
+		Brilliant::InitLog<Brilliant::iClientServerLogId>();
 
-	return 0;
+		TestServer server(60000);
+		server.Start();
+
+		while (1)
+		{
+			server.Update(-1, true);
+		}
+
+		return 0;
+	}
+	catch (const std::exception& e)
+	{
+		Brilliant::Log<Brilliant::iClientServerLogId>(Brilliant::LogLevel::Error) << "ERROR: " << e.what();
+		return 1;
+	}
 }
 
 void TestServer::OnMessage(std::shared_ptr<Brilliant::Connection<TestMessage>> client, Brilliant::Message<TestMessage>& msg)

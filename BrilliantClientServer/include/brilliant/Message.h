@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+
 #include "brilliant/GeneralConcepts.h"
 
 namespace Brilliant

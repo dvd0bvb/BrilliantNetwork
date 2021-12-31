@@ -1,13 +1,12 @@
 #ifndef BRILLIANTCLIENTSERVER_CONNECTION_H
 #define BRILLIANTCLIENTSERVER_CONNECTION_H
 
-#include <iostream>
-#include <stdint.h>
-#include "asio.hpp"
+#include <cstdint>
+
+#include "brilliant/Common.h"
 #include "brilliant/GeneralConcepts.h"
 #include "brilliant/Message.h"
 #include "brilliant/Queue.h"
-#include "brilliant/Common.h"
 
 namespace Brilliant
 {
@@ -23,19 +22,10 @@ namespace Brilliant
 			client
 		};
 
-		Connection(owner parent, asio::io_context& context, asio::ip::tcp::socket socket, Queue<OwnedMessage<T>>& qIn)
+		Connection(owner parent, asio::io_context& context, ssl::stream<tcp::socket> socket, Queue<OwnedMessage<T>>& qIn)
 			: iParent(parent), mContext(context), mSocket(std::move(socket)), mInQueue(qIn)
 		{
-			if (iParent == owner::server)
-			{
-				mHandshakeOut = std::uint64_t(std::chrono::system_clock::now().time_since_epoch().count());
-				mHandshakeCheck = Scramble(mHandshakeOut);
-			}
-			else
-			{
-				mHandshakeIn = 0;
-				mHandshakeCheck = 0;
-			}
+			mSocket.set_verify_mode(ssl::verify_none);
 		}
 
 		owner GetOwner() const { return iParent; }
@@ -51,11 +41,24 @@ namespace Brilliant
 		{
 			if (iParent == owner::server)
 			{
-				if (mSocket.is_open())
+				if (mSocket.lowest_layer().is_open())
 				{
 					mId = iId;
-					WriteValidation();
-					ReadValidation(server);
+					//WriteValidation();
+					//ReadValidation(server);
+					mSocket.async_handshake(mSocket.server, [this, server](const std::error_code& ec) {
+						if (!ec)
+						{
+							BCS_LOG() << "Client Validated";
+							server->OnClientValidated(this->shared_from_this());
+							ReadHeader();
+						}
+						else
+						{
+							BCS_LOG(LogLevel::Error) << "Handshake failed: " << ec.message();
+							//mSocket.shutdown();
+						}
+						});
 				}
 			}
 		}
@@ -64,11 +67,22 @@ namespace Brilliant
 		{
 			if (iParent == owner::client)
 			{
-				asio::async_connect(mSocket, endpoints,
+				asio::async_connect(mSocket.lowest_layer(), endpoints,
 					[this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
 						if (!ec)
 						{
-							ReadValidation();
+							//ReadValidation();
+							mSocket.async_handshake(mSocket.client, [this](const std::error_code& ec) {
+								if (!ec)
+								{
+									ReadHeader();
+								}
+								else
+								{
+									BCS_LOG() << "Handshake failed: " << ec.message();
+									//mSocket.shutdown();
+								}
+								});
 						}
 						else
 						{
@@ -82,13 +96,13 @@ namespace Brilliant
 		{
 			if (IsConnected())
 			{
-				asio::post(mContext, [&]() { mSocket.close(); });
+				asio::post(mContext, [&]() { mSocket.shutdown(); });
 			}
 		}
 
 		bool IsConnected() const
 		{
-			return mSocket.is_open();
+			return mSocket.lowest_layer().is_open();
 		}
 
 		void Send(const Message<T>& msg)
@@ -123,7 +137,7 @@ namespace Brilliant
 					else
 					{
 						BCS_LOG(LogLevel::Error) << "[" << mId << "] Read header fail";
-						mSocket.close();
+						mSocket.shutdown();
 					}
 				});
 		}
@@ -139,7 +153,7 @@ namespace Brilliant
 			else
 			{
 				BCS_LOG(LogLevel::Error) << "[" << mId << "] Read body fail";
-				mSocket.close();
+				mSocket.shutdown();
 			}
 		}
 
@@ -166,7 +180,7 @@ namespace Brilliant
 					else
 					{
 						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write header failed";
-						mSocket.close();
+						mSocket.shutdown();
 					}
 				});
 		}
@@ -187,7 +201,7 @@ namespace Brilliant
 					else
 					{
 						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write body failed";
-						mSocket.close();
+						mSocket.shutdown();
 					}
 				});
 		}
@@ -206,89 +220,10 @@ namespace Brilliant
 			ReadHeader();
 		}
 
-		std::uint64_t Scramble(std::uint64_t iInput)
-		{
-			std::uint64_t out = iInput ^ 0xDEADBEEFC0DECAFE;
-			out = (out & 0xF0F0F0F0F0F0F0F0) >> 4 | (out & 0xF0F0F0F0F0F0F0F0) << 4;
-			return out ^ 0xC0DEFACE12345678;
-		}
-
-		void WriteValidation()
-		{
-			asio::async_write(mSocket, asio::buffer(&mHandshakeOut, sizeof(std::uint64_t)),
-				[this](std::error_code ec, std::size_t length)
-				{
-					if (!ec)
-					{
-						if (iParent == owner::client)
-						{
-							ReadHeader();
-						}
-					}
-					else
-					{
-						BCS_LOG(LogLevel::Error) << "Disconnected (WriteValidation): " << ec.message();
-						mSocket.close();
-					}
-				}
-			);
-		}
-
-		template<class T>
-		void ReadValidation(T* server)
-		{
-			asio::async_read(mSocket, asio::buffer(&mHandshakeIn, sizeof(std::uint64_t)),
-				[this, server](std::error_code ec, std::size_t length) {
-					if (!ec)
-					{
-						if (iParent == owner::server)
-						{
-							if (mHandshakeIn == mHandshakeCheck)
-							{
-								BCS_LOG() << "Client Validated";
-								server->OnClientValidated(this->shared_from_this());
-								ReadHeader();
-							}
-						}
-					}
-					else
-					{
-						BCS_LOG(LogLevel::Error) << "Client Disconnected (Read Validation) " << ec.message();
-						mSocket.close();
-					}
-				}
-			);
-		}
-
-		void ReadValidation()
-		{
-			asio::async_read(mSocket, asio::buffer(&mHandshakeIn, sizeof(std::uint64_t)),
-				[this](std::error_code ec, std::size_t length) {
-					if (!ec)
-					{
-						if (iParent == owner::client)
-						{
-							mHandshakeOut = Scramble(mHandshakeIn);
-							WriteValidation();
-						}
-					}
-					else
-					{
-						BCS_LOG(LogLevel::Error) << "Client Disconnected (Read Validation) " << ec.message();
-						mSocket.close();
-					}
-				});
-		}
-
 		std::uint32_t mId = 0;
-
 		owner iParent = owner::server;
 
-		std::uint64_t mHandshakeOut = 0;
-		std::uint64_t mHandshakeIn = 0;
-		std::uint64_t mHandshakeCheck = 0;
-
-		asio::ip::tcp::socket mSocket;
+		ssl::stream<tcp::socket> mSocket;
 		asio::io_context& mContext;
 
 		Message<T> mMsgTmpIn;
