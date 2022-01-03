@@ -72,6 +72,9 @@ namespace Brilliant
 			return qMessagesIn;
 		}
 
+		ssl::context& GetSslContext() noexcept { return mSslContext; }
+		const ssl::context& GetSslContext() const noexcept { return mSslContext; }
+
 	protected:
 		asio::io_context mContext;
 		ssl::context mSslContext;

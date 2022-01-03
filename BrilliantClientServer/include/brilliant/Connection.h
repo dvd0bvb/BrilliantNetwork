@@ -56,7 +56,7 @@ namespace Brilliant
 						else
 						{
 							BCS_LOG(LogLevel::Error) << "Handshake failed: " << ec.message();
-							//mSocket.shutdown();
+							mSocket.lowest_layer().close();
 						}
 						});
 				}
@@ -80,7 +80,7 @@ namespace Brilliant
 								else
 								{
 									BCS_LOG() << "Handshake failed: " << ec.message();
-									//mSocket.shutdown();
+									mSocket.lowest_layer().close();
 								}
 								});
 						}
@@ -96,7 +96,7 @@ namespace Brilliant
 		{
 			if (IsConnected())
 			{
-				asio::post(mContext, [&]() { mSocket.shutdown(); });
+				asio::post(mContext, [&]() { mSocket.lowest_layer().close(); });
 			}
 		}
 
@@ -136,8 +136,8 @@ namespace Brilliant
 					}
 					else
 					{
-						BCS_LOG(LogLevel::Error) << "[" << mId << "] Read header fail";
-						mSocket.shutdown();
+						BCS_LOG(LogLevel::Error) << "[" << mId << "] Read header fail. Message: " << ec.message();
+						mSocket.lowest_layer().close();
 					}
 				});
 		}
@@ -152,8 +152,8 @@ namespace Brilliant
 			}
 			else
 			{
-				BCS_LOG(LogLevel::Error) << "[" << mId << "] Read body fail";
-				mSocket.shutdown();
+				BCS_LOG(LogLevel::Error) << "[" << mId << "] Read body fail. Message: " << ec.message();
+				mSocket.lowest_layer().close();
 			}
 		}
 
@@ -179,8 +179,8 @@ namespace Brilliant
 					}
 					else
 					{
-						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write header failed";
-						mSocket.shutdown();
+						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write header failed. Message: " << ec.message();
+						mSocket.lowest_layer().close();
 					}
 				});
 		}
@@ -200,8 +200,8 @@ namespace Brilliant
 					}
 					else
 					{
-						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write body failed";
-						mSocket.shutdown();
+						BCS_LOG(LogLevel::Error) << "[" << mId << "] Write body failed. Message: " << ec.message();
+						mSocket.lowest_layer().close();
 					}
 				});
 		}

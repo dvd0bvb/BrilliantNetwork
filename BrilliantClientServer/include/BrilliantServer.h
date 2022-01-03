@@ -141,6 +141,9 @@ namespace Brilliant
 
 		}
 
+		ssl::context& GetSslContext() noexcept { return mSslContext; }
+		const ssl::context& GetSslContext() const noexcept { return mSslContext; }
+
 	protected:
 		virtual bool OnClientConnect(std::shared_ptr<Connection<T>> client)
 		{
