@@ -14,8 +14,7 @@ namespace Brilliant
 	public:
 		Client() : mSslContext(ssl::context::sslv23_client), mSocket(mContext, mSslContext)
 		{
-			mSslContext.set_verify_mode(ssl::context::verify_none);
-			mSocket.set_verify_mode(ssl::verify_none);
+			
 		}
 
 		virtual ~Client()

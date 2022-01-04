@@ -16,8 +16,7 @@ namespace Brilliant
 	public:
 		Server(std::uint16_t iPort) : mSslContext(ssl::context::sslv23_server), mAcceptor(mContext, tcp::endpoint(tcp::v4(), iPort))
 		{
-			mSslContext.set_verify_mode(ssl::context::verify_none);
-			//mSslContext.set_default_verify_paths();
+			
 		}
 
 		virtual ~Server()
