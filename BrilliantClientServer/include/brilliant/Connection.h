@@ -25,7 +25,7 @@ namespace Brilliant
 		Connection(owner parent, asio::io_context& context, ssl::stream<tcp::socket> socket, Queue<OwnedMessage<T>>& qIn)
 			: iParent(parent), mContext(context), mSocket(std::move(socket)), mInQueue(qIn)
 		{
-			mSocket.set_verify_mode(ssl::verify_none);
+			
 		}
 
 		owner GetOwner() const { return iParent; }
