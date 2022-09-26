@@ -13,39 +13,40 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\brilliant">
+      <UniqueIdentifier>{162232fa-9b1b-4fb5-b5a2-fb7e6c8c14b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SocketTraits.h">
+    <ClInclude Include="..\include\BrilliantNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Connection.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\Acceptor.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="ConnectionProcess.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\AsioIncludes.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="Ssl.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\Client.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="Client.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\Connection.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="AsioIncludes.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\ConnectionProcess.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="Server.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\Server.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="Acceptor.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\ServerProcess.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-    <ClInclude Include="ServerProcess.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\brilliant\SocketTraits.h">
+      <Filter>Header Files\brilliant</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="..\include\brilliant\Ssl.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

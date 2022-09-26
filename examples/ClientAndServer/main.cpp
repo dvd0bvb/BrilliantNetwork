@@ -3,10 +3,7 @@
 #include <thread>
 #include <array>
 
-#include "Connection.h"
-#include "ServerProcess.h"
-#include "Client.h"
-#include "Server.h"
+#include <BrilliantNetwork.h>
 
 using namespace Brilliant::Network;
 
