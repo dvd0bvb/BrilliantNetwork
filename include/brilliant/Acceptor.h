@@ -108,8 +108,10 @@ namespace Brilliant
                 }
             }
 
+            //TODO: break this up using concepts
             asio::awaitable<socket_type> AsyncAccept(std::string_view service, asio::error_code& ec)
             {
+                //TODO: break endpoint init up into private functions. see AwaitableServier.h
 #ifndef _WIN32
                 if constexpr (std::is_same_v<asio::local::stream_protocol, protocol_type>)
                 {
@@ -130,6 +132,7 @@ namespace Brilliant
                 {
                     std::uint16_t port{};
                     std::from_chars(service.data(), service.data() + service.size(), port);
+                    //TODO: check result of from_chars
                     typename protocol_type::endpoint ep{ protocol_type::v4(), port };
                     acceptor.open(ep.protocol());
                     acceptor.bind(ep, ec);

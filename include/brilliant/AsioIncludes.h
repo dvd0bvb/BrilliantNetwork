@@ -8,6 +8,8 @@
 
 //if standalone asio
 #include <asio.hpp>
+#include <asio/experimental/coro.hpp>
+#include <asio/experimental/use_coro.hpp>
 //else if boost.asio
 //#inlcude <boost/asio.hpp>
 // namespace Brilliant { namespace Network {

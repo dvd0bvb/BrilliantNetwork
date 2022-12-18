@@ -48,5 +48,20 @@
     <ClInclude Include="..\include\brilliant\Ssl.h">
       <Filter>Header Files\brilliant</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\brilliant\AwaitableConnection.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\brilliant\ConnectionInterface.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\brilliant\AwaitableConnectionInterface.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\brilliant\AwaitableClient.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\brilliant\AwaitableServer.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

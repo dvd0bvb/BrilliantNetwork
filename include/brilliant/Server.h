@@ -13,7 +13,9 @@ namespace Brilliant
         class Server
         {
         public:
-            Server(asio::io_context& ctx, ServerProcess& proc) : context(ctx), process(proc)
+            Server(asio::io_context& ctx, ServerProcess& proc) : 
+                context(ctx), 
+                process(proc)
             {
 
             }

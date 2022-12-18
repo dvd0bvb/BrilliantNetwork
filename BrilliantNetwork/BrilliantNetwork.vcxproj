@@ -71,16 +71,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\..\openssl\openssl-master\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\asio\asio\include;$(SolutionDir)..\openssl-3.0.7\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\..\openssl\openssl-master\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\asio\asio\include;$(SolutionDir)..\openssl-3.0.7\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\..\openssl\openssl-master\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\asio\asio\include;$(SolutionDir)..\openssl-3.0.7\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\..\asio-1.18.1\include;..\..\BrilliantLogger\BrilliantLogger.h\include;..\..\openssl\openssl-master\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\asio\asio\include;$(SolutionDir)..\openssl-3.0.7\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -158,8 +158,13 @@
     <ClInclude Include="..\include\BrilliantNetwork.h" />
     <ClInclude Include="..\include\brilliant\Acceptor.h" />
     <ClInclude Include="..\include\brilliant\AsioIncludes.h" />
+    <ClInclude Include="..\include\brilliant\AwaitableClient.h" />
+    <ClInclude Include="..\include\brilliant\AwaitableConnection.h" />
+    <ClInclude Include="..\include\brilliant\AwaitableConnectionInterface.h" />
+    <ClInclude Include="..\include\brilliant\AwaitableServer.h" />
     <ClInclude Include="..\include\brilliant\Client.h" />
     <ClInclude Include="..\include\brilliant\Connection.h" />
+    <ClInclude Include="..\include\brilliant\ConnectionInterface.h" />
     <ClInclude Include="..\include\brilliant\ConnectionProcess.h" />
     <ClInclude Include="..\include\brilliant\Server.h" />
     <ClInclude Include="..\include\brilliant\ServerProcess.h" />
