@@ -20,7 +20,6 @@ namespace Brilliant
             virtual void OnError(ConnectionInterface& connection, const asio::error_code& ec, const std::source_location& location) = 0;
 
             //return 0 to indicate when data transmission is complete
-            //TODO: how do we actually know without the data?
             virtual std::size_t ReadCompletion(ConnectionInterface& connection, const asio::error_code& ec, std::size_t n) = 0;
 
             //called when data read operation is complete, handle the incoming data

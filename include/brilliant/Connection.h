@@ -1,124 +1,94 @@
 #pragma once
 
 #include <vector>
-#include <queue>
+#include <deque>
+
+#include <iostream>
 
 #include "AsioIncludes.h"
 #include "ConnectionInterface.h"
 #include "ConnectionProcess.h"
 #include "SocketTraits.h"
+#include "EndpointHelper.h"
+#include "AwaitableConnection.h"
 
 namespace Brilliant
 {
     namespace Network
     {
-        template<class Socket, class BufferAllocator = std::allocator<std::byte>>
-        class BasicConnection : public ConnectionInterface
+        template<class Socket>
+        class Connection : public ConnectionInterface
         {
         private:
-            struct allocate_shared_enabler : public BasicConnection
+            struct allocate_shared_enabler : public Connection
             {
-                template<class... Args> allocate_shared_enabler(Args&&... args) : BasicConnection(std::forward<Args>(args)...) {}
+                template<class... Args> allocate_shared_enabler(Args&&... args) : Connection(std::forward<Args>(args)...) {}
             };
 
         public:
             using socket_type = Socket;
             using protocol_type = socket_protocol_type_t<socket_type>;
-            using buffer_allocator_type = BufferAllocator;
+            using buffer_type = asio::const_buffer;
+            using queue_type = std::deque<buffer_type>;
 
-            template<class ConnectionAllocator = std::allocator<BasicConnection>>
-            static std::shared_ptr<BasicConnection> Create(socket_type socket, ConnectionProcess& process)
+            template<class ConnectionAllocator = std::allocator<Connection>>
+            static auto Create(socket_type socket, ConnectionProcess& proc, const ConnectionAllocator& alloc = {})
             {
-                ConnectionAllocator allocator{};
-                return std::allocate_shared<allocate_shared_enabler>(allocator, std::move(socket), process);
+                return std::allocate_shared<allocate_shared_enabler>(alloc, std::move(socket), proc);
             }
 
             void Connect()
             {
                 //use asio::detached because we don't need a handler when coroutine completes
-                asio::co_spawn(strand, std::bind(&BasicConnection::OnIncomingConnect, shared_from_base()), asio::detached);
+                asio::co_spawn(strand, std::bind(&Connection::OnIncomingConnect, shared_from_base()), asio::detached);
             }
 
             void Connect(std::string_view host, std::string_view service)
             {
                 //use asio::detached because we don't need a handler when coroutine completes
-                asio::co_spawn(strand, std::bind(&BasicConnection::OnOutgoingConnect, shared_from_base(), host, service), asio::detached);
+                asio::co_spawn(strand, std::bind(&Connection::OnOutgoingConnect, shared_from_base(), host, service), asio::detached);
             }
 
             void Disconnect()
             {
-                asio::error_code ec;
-                socket.lowest_layer().cancel(ec);
-                if (ec)
+                if (auto ec = connection.Disconnect())
                 {
-                    OnError(ec);
-                }
-
-                if (IsConnected())
-                {
-                    if constexpr (is_ssl_wrapped_v<socket_type>)
-                    {
-                        socket.shutdown(ec);
-                        if (ec)
-                        {
-                            OnError(ec);
-                        }
-                    }
-
-                    socket.lowest_layer().shutdown(socket_type::lowest_layer_type::shutdown_both, ec);
-                    if (ec)
-                    {
-                        OnError(ec);
-                    }
-
-                    socket.lowest_layer().close(ec);
-                    if (ec)
-                    {
-                        OnError(ec);
-                    }
+                    process.OnError(*this, ec, std::source_location::current());
                 }
             }
 
             bool IsConnected() const
             {
-                if constexpr (is_ssl_wrapped_v<socket_type>)
-                {
-                    return socket.lowest_layer().is_open();
-                }
-                else
-                {
-                    return socket.is_open();
-                }
+                return connection.IsConnected();
             }
 
-            void Send(std::span<std::byte> msg)
+            void Send(const asio::const_buffer& msg)
             {
                 const bool writing = !out_queue.empty();
-                out_queue.emplace(msg.begin(), msg.end());
+                out_queue.emplace_back(msg);
                 if (connect_complete && !writing)
                 {
                     //use asio::detached because we don't need a handler when coroutine completes
-                    asio::co_spawn(strand, std::bind(&BasicConnection::Write, shared_from_base()), asio::detached);
+                    asio::co_spawn(strand, std::bind(&Connection::Write, shared_from_base()), asio::detached);
                 }
             }
 
         private:
-            BasicConnection(socket_type sock, ConnectionProcess& proc) : connect_complete(false), socket(std::move(sock)), process(proc), strand(socket.get_executor())
+            Connection(socket_type sock, ConnectionProcess& proc) :
+                connect_complete(false),
+                strand(sock.get_executor()),
+                connection(std::move(sock)),
+                process(proc)                
             {
 
             }
 
             asio::awaitable<void> OnIncomingConnect()
             {
-                if constexpr (is_ssl_wrapped_v<socket_type>)
+                if (auto ec = co_await connection.Connect())
                 {
-                    asio::error_code ec;
-                    co_await socket.async_handshake(socket.server, asio::redirect_error(asio::use_awaitable, ec));
-                    if (ec)
-                    {
-                        OnError(ec);
-                        co_return;
-                    }
+                    OnError(ec);
+                    co_return;
                 }
 
                 //dg protocols need to wait for read in order to send. See Read()
@@ -127,90 +97,41 @@ namespace Brilliant
                     OnConnectComplete();
                 }
 
-                asio::co_spawn(strand, std::bind(&BasicConnection::Read, shared_from_base()), asio::detached);
+                asio::co_spawn(strand, std::bind(&Connection::Read, shared_from_base()), asio::detached);
                 co_return;
             }
 
             asio::awaitable<void> OnOutgoingConnect(std::string_view host, std::string_view service)
             {
-                asio::error_code ec;
-                asio::ip::basic_resolver<protocol_type> resolver(strand);
-                typename asio::ip::basic_resolver<protocol_type>::results_type results{};
-
-#ifndef _WIN32
-                //if using local protocol on posix system, need to resolve only the path
-                if constexpr (std::is_same_v<protocol_type, asio::local::stream_protocol> || std::is_same_v<protocol_type, asio::local::datagram_protocol>)
-                {
-                    results = co_await resolver.async_resolve({ service }, asio::redierect_error(asio::use_awaitable, ec);
-                }
-                else
-#endif
-                {
-                    results = co_await resolver.async_resolve(host, service, asio::redirect_error(asio::use_awaitable, ec));
-                }
-
-                if (ec)
+                if (auto ec = co_await connection.Connect(host, service))
                 {
                     OnError(ec);
                     co_return;
-                }
-
-                remote_endpoint = co_await asio::async_connect(socket.lowest_layer(), results, asio::redirect_error(asio::use_awaitable, ec));
-                if (ec)
-                {
-                    OnError(ec);
-                    co_return;
-                }
-
-                if constexpr (is_ssl_wrapped_v<socket_type>)
-                {
-                    co_await socket.async_handshake(socket.client, asio::redirect_error(asio::use_awaitable, ec));
-                    if (ec)
-                    {
-                        OnError(ec);
-                        co_return;
-                    }
                 }
 
                 OnConnectComplete();
 
-                asio::co_spawn(strand, std::bind(&BasicConnection::Read, shared_from_base()), asio::detached);
+                asio::co_spawn(strand, std::bind(&Connection::Read, shared_from_base()), asio::detached);
             }
 
             asio::awaitable<void> Read()
             {
                 while (true)
                 {
-                    asio::error_code ec;
-                    std::size_t bytes_read = 0;
-                    std::vector<std::byte, buffer_allocator_type> in_buffer;
-
-                    //dg sockets that don't have connect() called on them (such as in the case when Connect() with no params is called) will need to wait until they receive
-                    //at which point remote_endpoint will be set and data will be able to be sent back
-                    if constexpr (is_datagram_protocol_v<protocol_type>)
-                    {
-                        std::size_t bytes_left = ReadCompletion(ec, bytes_read);
-
-                        do {
-                            in_buffer.insert(in_buffer.cend(), bytes_left, std::byte{});
-                            bytes_read += co_await socket.async_receive_from(asio::buffer(in_buffer), remote_endpoint, asio::redirect_error(asio::use_awaitable, ec));
-                            bytes_left = ReadCompletion(ec, bytes_read);
-                        } while (bytes_left > 0 && !ec && bytes_read != 0);
-
-                        if (!connect_complete)
-                        {
-                            OnConnectComplete();
-                        }
-                    }
-                    else
-                    {
-                        bytes_read = co_await asio::async_read(socket, asio::dynamic_vector_buffer(in_buffer), std::bind(&BasicConnection::ReadCompletion, this, std::placeholders::_1, std::placeholders::_2), asio::redirect_error(asio::use_awaitable, ec));
-                    }
+                    std::vector<std::byte> in_buffer{ ReadCompletion({}, 0) }; //need a better way to do this
+                    auto [bytes_read, ec] = co_await connection.ReadInto(asio::buffer(in_buffer));
 
                     if (ec)
                     {
                         OnError(ec);
                         co_return;
+                    }
+
+                    //dg sockets that don't have connect() called on them (such as in the case when Connect() with no params is called) will need to wait until they receive
+                    //at which point remote_endpoint will be set and data will be able to be sent back
+                    if (!connect_complete)
+                    {
+                        OnConnectComplete();
                     }
 
                     process.OnRead(*this, in_buffer);
@@ -226,19 +147,8 @@ namespace Brilliant
             {
                 while (!out_queue.empty())
                 {
-                    asio::error_code ec;
-                    std::size_t bytes_written = 0;
                     const auto& data = out_queue.front();
-
-                    if constexpr (is_datagram_protocol_v<protocol_type>)
-                    {
-                        bytes_written = co_await socket.async_send_to(asio::buffer(data), remote_endpoint, asio::redirect_error(asio::use_awaitable, ec));
-                    }
-                    else
-                    {
-                        bytes_written = co_await asio::async_write(socket, asio::buffer(data), asio::redirect_error(asio::use_awaitable, ec));
-                    }
-
+                    auto [bytes_written, ec] = co_await connection.Send(data);
                     if (ec)
                     {
                         OnError(ec);
@@ -246,7 +156,7 @@ namespace Brilliant
                     }
                     
                     process.OnWrite(*this, bytes_written);
-                    out_queue.pop();
+                    out_queue.pop_front();
                 }
             }
 
@@ -264,27 +174,20 @@ namespace Brilliant
 
                 if (!out_queue.empty())
                 {
-                    asio::co_spawn(strand, std::bind(&BasicConnection::Write, shared_from_base()), asio::detached);
+                    asio::co_spawn(strand, std::bind(&Connection::Write, shared_from_base()), asio::detached);
                 }
             }
 
-            std::shared_ptr<BasicConnection> shared_from_base()
+            std::shared_ptr<Connection> shared_from_base()
             {
-                return std::static_pointer_cast<BasicConnection>(this->shared_from_this());
+                return std::static_pointer_cast<Connection>(this->shared_from_this());
             }
 
             bool connect_complete;
             ConnectionProcess& process;
-            typename protocol_type::endpoint remote_endpoint;
-            socket_type socket;
+            AwaitableConnection<socket_type> connection;
             asio::strand<typename socket_type::executor_type> strand;
-            std::queue<std::vector<std::byte, buffer_allocator_type>> out_queue;
+            queue_type out_queue;
         };
-
-        template<class Socket, class BufferAllocator = std::allocator<std::byte>, class ConnectionAllocator = std::allocator<BasicConnection<Socket, BufferAllocator>>>
-        std::shared_ptr<BasicConnection<Socket, BufferAllocator>> MakeConnection(Socket socket, ConnectionProcess& process)
-        {
-            return BasicConnection<Socket, BufferAllocator>::Create(std::move(socket), process);
-        }
     }
 }

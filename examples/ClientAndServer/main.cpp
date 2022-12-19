@@ -1,7 +1,9 @@
 #include <iostream>
 #include <queue>
 #include <thread>
-#include <array>
+
+#include <filesystem>
+#include <fstream>
 
 #include <BrilliantNetwork.h>
 
@@ -12,12 +14,11 @@ class Proc : public Brilliant::Network::ServerProcess
 public:
     void OnError(ConnectionInterface& connection, const asio::error_code& ec, const std::source_location& location)
     {
-        std::cout << ec.value() << ' ' << ec.message() << ' ' << location.function_name() << '\n';
+        std::cout << ec.value() << ' ' << ec.message() << ' ' << location.file_name() << ' ' << location.function_name() << " line: " << location.line() << '\n';
     }
 
     std::size_t ReadCompletion(ConnectionInterface& connection, const asio::error_code& ec, std::size_t n)
     {
-        std::cout << "thread: " << std::this_thread::get_id() << " n: " << n << '\n';
         return sizeof(int) < n ? 0 : (sizeof(int) - n);
     }
 
@@ -28,14 +29,14 @@ public:
         {
             int i = 0;
             std::memcpy(&i, data.data(), sizeof(int));
-            std::cout << "Received message: " << i << '\n';
+            std::cout << std::this_thread::get_id() << " received message: " << i << '\n';
 
-            int out = 13;
-            connection.Send(std::span{ reinterpret_cast<std::byte*>(&out), sizeof(out) });
+            static const int data = 13;
+            connection.Send({ &data, sizeof(data) });
         }
         else
         {
-            std::cout << "Received message size of " << n << '\n';
+            std::cout << std::this_thread::get_id() << " received message size of " << n << '\n';
         }
     }
 
@@ -90,12 +91,14 @@ int main()
     asio::io_context context;
     Proc proc;
 
+    using protocol = asio::ip::udp;
+    //using protocol = asio::ip::tcp;
+
     //server
     std::thread t2([&context, &proc]() {
         std::cout << "server thread " << std::this_thread::get_id() << '\n';
-        Brilliant::Network::Server server(context, proc);
-        server.AcceptOn<asio::ip::tcp>("8000");
-        server.AcceptOn<asio::ip::udp>("8000");
+        Brilliant::Network::Server<protocol> server(context, proc);
+        server.AcceptOn("8000");
 
         context.run_for(std::chrono::seconds{2});
         });
@@ -104,12 +107,10 @@ int main()
     std::thread t1([&context, &proc]() {
         std::cout << "client thread " << std::this_thread::get_id() << '\n';
 
-        Brilliant::Network::Client<asio::ip::udp> client(context, proc);
-        //Brilliant::Network::Client<asio::ip::tcp> client(context, proc);
+        Brilliant::Network::Client<protocol> client(context, proc);
         client.Connect("127.0.0.1", "8000");
-        int out = 1;
-        //std::span has no initializer_list ctor yet...
-        client.Send(std::span{ &out, sizeof(out) });
+        int i = 1;
+        client.Send(asio::buffer(&i, sizeof(i)));
 
         context.run_for(std::chrono::seconds{ 2 });
         });

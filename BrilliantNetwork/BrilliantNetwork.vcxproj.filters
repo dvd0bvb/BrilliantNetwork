@@ -21,9 +21,6 @@
     <ClInclude Include="..\include\BrilliantNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\brilliant\Acceptor.h">
-      <Filter>Header Files\brilliant</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\brilliant\AsioIncludes.h">
       <Filter>Header Files\brilliant</Filter>
     </ClInclude>
@@ -61,6 +58,9 @@
       <Filter>Header Files\brilliant</Filter>
     </ClInclude>
     <ClInclude Include="..\include\brilliant\AwaitableServer.h">
+      <Filter>Header Files\brilliant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\brilliant\EndpointHelper.h">
       <Filter>Header Files\brilliant</Filter>
     </ClInclude>
   </ItemGroup>

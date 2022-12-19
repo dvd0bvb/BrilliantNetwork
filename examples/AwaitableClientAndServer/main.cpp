@@ -9,7 +9,7 @@ asio::awaitable<void> ServerProc(Brilliant::Network::AwaitableConnectionInterfac
     while (true)
     {
         std::vector<char> message(sizeof("hello server"));
-        co_await Brilliant::Network::ReadInto(*conn, message);
+        co_await conn->ReadInto(asio::buffer(message));
 
         std::cout << "Server read: " << message.data() << '\n';
 
@@ -20,7 +20,7 @@ asio::awaitable<void> ServerProc(Brilliant::Network::AwaitableConnectionInterfac
             co_return;
         }
 
-        co_await Brilliant::Network::Send(*conn, "hello client");
+        co_await conn->Send(asio::buffer("hello client"));
 
         std::cout << "Server sent: " << std::quoted("hello client") << '\n';
     }
@@ -28,8 +28,8 @@ asio::awaitable<void> ServerProc(Brilliant::Network::AwaitableConnectionInterfac
 
 asio::awaitable<void> Server(asio::io_context& context)
 {
-    Brilliant::Network::AwaitableServer server(context);
-    auto accept = server.AcceptOn<asio::ip::tcp>("8000");
+    Brilliant::Network::AwaitableServer<asio::ip::tcp> server(context);
+    auto accept = server.AcceptOn("8000");
     while (accept)
     {
         //note MSVC will not compile this at time of writing
@@ -45,13 +45,13 @@ asio::awaitable<void> Client(asio::io_context& context)
 {
     Brilliant::Network::AwaitableClient<asio::ip::tcp> client(context);
     co_await client.Connect("localhost", "8000");
-    co_await client.Send("hello server");
+    co_await client.Send(asio::buffer("hello server"));
 
     std::vector<char> buffer(sizeof("hello client"));
-    co_await client.Read(buffer);
+    co_await client.Read(asio::buffer(buffer));
 
     std::cout << "Client received: " << std::string_view(buffer.data(), buffer.size()) << '\n';
-    co_await client.Send("bye server..");
+    co_await client.Send(asio::buffer("bye server.."));
     client.Disconnect();
 }
 

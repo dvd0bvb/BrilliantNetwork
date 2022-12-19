@@ -156,7 +156,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\BrilliantNetwork.h" />
-    <ClInclude Include="..\include\brilliant\Acceptor.h" />
     <ClInclude Include="..\include\brilliant\AsioIncludes.h" />
     <ClInclude Include="..\include\brilliant\AwaitableClient.h" />
     <ClInclude Include="..\include\brilliant\AwaitableConnection.h" />
@@ -166,6 +165,7 @@
     <ClInclude Include="..\include\brilliant\Connection.h" />
     <ClInclude Include="..\include\brilliant\ConnectionInterface.h" />
     <ClInclude Include="..\include\brilliant\ConnectionProcess.h" />
+    <ClInclude Include="..\include\brilliant\EndpointHelper.h" />
     <ClInclude Include="..\include\brilliant\Server.h" />
     <ClInclude Include="..\include\brilliant\ServerProcess.h" />
     <ClInclude Include="..\include\brilliant\SocketTraits.h" />

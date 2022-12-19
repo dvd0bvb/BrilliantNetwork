@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <string_view>
-#include <span>
 
 namespace Brilliant
 {
@@ -16,7 +15,7 @@ namespace Brilliant
             virtual void Connect(std::string_view host, std::string_view service) = 0;
             virtual void Disconnect() = 0;
             virtual bool IsConnected() const = 0;
-            virtual void Send(std::span<std::byte> data) = 0;
+            virtual void Send(const asio::const_buffer& data) = 0;
         };
     }
 }

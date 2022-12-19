@@ -3,6 +3,7 @@
 #include <optional>
 #include <memory>
 #include <string_view>
+#include <ranges>
 
 #include "ConnectionProcess.h"
 #include "Connection.h"
@@ -20,16 +21,16 @@ namespace Brilliant
             using socket_type = typename protocol_type::socket;
 
             //TODO: allow customization of allocators for connection
-            Client(asio::io_context& ctx, ConnectionProcess& proc)
+            Client(asio::io_context& ctx, ConnectionProcess& proc) : 
+                connection(Connection<socket_type>::Create(socket_type{ctx}, proc))
             {
-                socket_type socket(ctx);
-                connection = MakeConnection(std::move(socket), proc);
+
             }
 
-            Client(asio::io_context& ctx, asio::ssl::context& ssl, ConnectionProcess& proc)
+            Client(asio::io_context& ctx, asio::ssl::context& ssl, ConnectionProcess& proc) : 
+                connection(Connection<asio::ssl::stream<socket_type>>::Create({ ctx, ssl }, proc))
             {
-                asio::ssl::stream<socket_type> socket(ctx, ssl);
-                connection = MakeConnection(std::move(socket), proc);
+
             }
 
             ~Client()
@@ -48,10 +49,9 @@ namespace Brilliant
             }
 
             template<class T>
-            void Send(std::span<T> msg)
+            void Send(T&& t)
             {
-                //TODO: outgoing messages should be const but compiler gives errors when copying the span to the outgoing queue...
-                connection->Send(std::as_writable_bytes(msg));
+                connection->Send(std::forward<T>(t));
             }
 
         private:                        

@@ -30,17 +30,17 @@ namespace Brilliant
         template<class Socket>
         struct socket_protocol_type
         {
-            using type = Socket::protocol_type;
+            using type = typename Socket::protocol_type;
         };
 
         template<class Socket>
         struct socket_protocol_type<asio::ssl::stream<Socket>>
         {
-            using type = Socket::lowest_layer_type::protocol_type;
+            using type = typename Socket::lowest_layer_type::protocol_type;
         };
 
         template<class Socket>
-        using socket_protocol_type_t = socket_protocol_type<Socket>::type;
+        using socket_protocol_type_t = typename socket_protocol_type<Socket>::type;
 
 #ifdef ASIO_HAS_LOCAL_SOCKETS
         template<class T> struct is_local_protocol : std::bool_constant<

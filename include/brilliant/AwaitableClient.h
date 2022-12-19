@@ -17,13 +17,13 @@ namespace Brilliant
             using connection_type = AwaitableConnection<socket_type>;
 
             AwaitableClient(asio::io_context& context) : 
-                connection(socket_type{context})
+                connection(std::make_unique<AwaitableConnection<socket_type>>(socket_type{ context }))
             {
 
             }
 
             AwaitableClient(asio::io_context& context, asio::ssl::context& ssl) : 
-                connection(asio::ssl::stream<socket_type>{context, ssl})
+                connection(std::make_unique<AwaitableConnection<asio::ssl::stream<socket_type>>>(asio::ssl::stream<socket_type>{ context, ssl }))
             {
 
             }
@@ -33,31 +33,31 @@ namespace Brilliant
                 Disconnect();
             }
 
-            //need trailing return types for coroutines
+            //return the awaitable object that connection creates
             auto Connect(std::string_view host, std::string_view service)
             {
-                return connection.Connect(host, service);
+                return connection->Connect(host, service);
             }
 
             void Disconnect()
             {
-                connection.Disconnect();
+                connection->Disconnect();
             }
 
             template<class T>
             auto Send(T&& msg)
             {
-                return ::Brilliant::Network::Send(connection, std::forward<T>(msg));
+                return connection->Send(std::forward<T>(msg));
             }
 
             template<class T>
             auto Read(T&& msg)
             {
-                return ReadInto(connection, std::forward<T>(msg));
+                return connection->ReadInto(std::forward<T>(msg));
             }
 
         private:
-            connection_type connection;
+            std::unique_ptr<AwaitableConnectionInterface> connection;
         };
     }
 }

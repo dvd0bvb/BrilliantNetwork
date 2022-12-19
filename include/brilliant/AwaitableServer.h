@@ -3,14 +3,19 @@
 #include <charconv>
 
 #include "AwaitableConnection.h"
+#include "EndpointHelper.h"
 
 namespace Brilliant
 {
     namespace Network
     {
+        template<class Protocol>
         class AwaitableServer
         {
         public:
+            using protocol_type = Protocol;
+            using acceptor_type = asio::basic_socket_acceptor<protocol_type>;
+
             AwaitableServer(asio::io_context& ctx) : 
                 context(ctx)
             {
@@ -18,59 +23,66 @@ namespace Brilliant
             }
 
             //TODO: Consider returning a ref to the acceptor so we can stop it
-            template<class Protocol>
             asio::experimental::generator<AwaitableConnectionInterface*>
                 AcceptOn(std::string_view service) 
-                requires (!is_datagram_protocol_v<Protocol>)
+                requires (!is_datagram_protocol_v<protocol_type>)
             {
-                asio::basic_socket_acceptor<Protocol> acceptor(context); //use basic_socket_acceptor in case of generic protocol
-                auto ep = MakeEndpoint<Protocol>(service);
-                acceptor.open(ep.protocol());
-                acceptor.bind(ep); //this can throw, should use error code overload
-                acceptor.listen();
-
-                while (acceptor.is_open())
+                asio::error_code ec{};
+                auto& acceptor = acceptors.emplace_back(context); //use basic_socket_acceptor in case of generic protocol
+                InitAcceptor(acceptor, service, ec);
+                if (ec)
                 {
-                    typename Protocol::socket socket{ context };
+                    acceptors.pop_back();
+                }
+
+                while (!ec && acceptor.is_open())
+                {
+                    typename protocol_type::socket socket{ context };
                     //need to use this overload of async_accept because socket does not have a default ctor
                     //coro requires that yield value has default ctor
                     co_await acceptor.async_accept(socket, asio::experimental::use_coro);
-                    auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<typename Protocol::socket>>(std::move(socket)));
+                    auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<typename protocol_type::socket>>(std::move(socket)));
                     co_yield result.get();
                 }
             }
 
-            template<class Protocol>
             asio::awaitable<AwaitableConnectionInterface*>
                 AcceptOn(std::string_view service)
-                requires (is_datagram_protocol_v<Protocol>)
+                requires (is_datagram_protocol_v<protocol_type>)
             {
-                auto ep = MakeEndpoint<Protocol>(service);
-                typename Protocol::socket socket{ context, ep };
-                auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<typename Protocol::socket>>(std::move(socket)));
+                asio::error_code ec{};
+                auto ep = MakeEndpointFromService<protocol_type>(service, ec);
+                if (ec)
+                {
+                    co_return nullptr;
+                }
+
+                typename protocol_type::socket socket{ context, ep };
+                auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<typename protocol_type::socket>>(std::move(socket)));
                 co_return result.get();
             }
 
-            template<class Protocol>
             asio::experimental::generator<AwaitableConnectionInterface*>
                 AcceptOn(std::string_view service, asio::ssl::context& ssl)
             {
-                static_assert(!is_datagram_protocol_v<Protocol>, "Cannot use ssl with a datagram protocol");
+                static_assert(!is_datagram_protocol_v<protocol_type>, "Cannot use ssl with a datagram protocol");
 
-                asio::basic_socket_acceptor<Protocol> acceptor(context); //use basic_socket_acceptor in case of generic protocol
-                auto ep = MakeEndpoint<Protocol>(service);
-                acceptor.open(ep.protocol());
-                acceptor.bind(ep); //this can throw, should use error code overload
-                acceptor.listen();
-
-                while (acceptor.is_open())
+                asio::error_code ec{};
+                auto& acceptor = acceptors.emplace_back(context); //use basic_socket_acceptor in case of generic protocol
+                InitAcceptor(acceptor, service, ec);
+                if (ec)
                 {
-                    typename Protocol::socket socket{ context };
+                    acceptors.pop_back();
+                }
+
+                while (!ec && acceptor.is_open())
+                {
+                    typename protocol_type::socket socket{ context };
                     //need to use this overload of async_accept because socket does not have a default ctor
                     //coro requires that yield value has default ctor
                     co_await acceptor.async_accept(socket, asio::experimental::use_coro);
 
-                    asio::ssl::stream<typename Protocol::socket> ssl_socket{ std::move(socket), ssl };
+                    asio::ssl::stream<typename protocol_type::socket> ssl_socket{ std::move(socket), ssl };
                     auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<std::decay_t<decltype(ssl_socket)>>>(std::move(ssl_socket)));
                     co_yield result.get();
                 }
@@ -83,25 +95,25 @@ namespace Brilliant
             }
 
         private:
-            template<class Protocol>
-            requires (!is_local_protocol_v<Protocol>)
-            auto MakeEndpoint(std::string_view service)
+            void InitAcceptor(acceptor_type& acceptor, std::string_view service, asio::error_code& ec)
             {
-                std::uint16_t port{};
-                auto result = std::from_chars(service.data(), service.data() + service.size(), port);
-                //TODO: check result
-                //TODO: see if we can use other types, like v6(), perhaps function parameter
-                return typename Protocol::endpoint{ Protocol::v4(), port };
-            }
+                auto ep = MakeEndpointFromService<protocol_type>(service, ec);
+                if (ec)
+                {
+                    return;
+                }
+                acceptor.open(ep.protocol());
+                acceptor.bind(ep, ec);
+                if (ec)
+                {
+                    return;
+                }
 
-            template<class Protocol>
-            requires (is_local_protocol_v<Protocol>)
-            auto MakeEndpoint(std::string_view service)
-            {
-                return typename Protocol::endpoint{ service };
+                acceptor.listen();
             }
 
             asio::io_context& context;
+            std::vector<acceptor_type> acceptors;
             std::vector<std::unique_ptr<AwaitableConnectionInterface>> connections;
         };
     }
