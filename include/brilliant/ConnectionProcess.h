@@ -17,10 +17,10 @@ namespace Brilliant
             virtual ~ConnectionProcess() = default;
 
             //gives error and where the error occurred
-            virtual void OnError(ConnectionInterface& connection, const asio::error_code& ec, const std::source_location& location) = 0;
+            virtual void OnError(ConnectionInterface& connection, const error_code& ec, const std::source_location& location) = 0;
 
             //return 0 to indicate when data transmission is complete
-            virtual std::size_t ReadCompletion(ConnectionInterface& connection, const asio::error_code& ec, std::size_t n) = 0;
+            virtual std::size_t ReadCompletion(ConnectionInterface& connection, const error_code& ec, std::size_t n) = 0;
 
             //called when data read operation is complete, handle the incoming data
             virtual void OnRead(ConnectionInterface& connection, const std::span<std::byte>& data) = 0;

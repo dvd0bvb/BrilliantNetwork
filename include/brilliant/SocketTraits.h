@@ -19,7 +19,7 @@ namespace Brilliant
 
         template<> struct is_datagram_protocol<asio::ip::udp> : std::true_type {};
         template<> struct is_datagram_protocol<asio::generic::datagram_protocol> : std::true_type {};
-        //will this need to change for boost.asio?
+        
 #ifdef ASIO_HAS_LOCAL_SOCKETS
         template<> struct is_datagram_protocol<asio::local::datagram_protocol> : std::true_type {};
 #endif

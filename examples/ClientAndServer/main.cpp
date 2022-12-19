@@ -12,12 +12,12 @@ using namespace Brilliant::Network;
 class Proc : public Brilliant::Network::ServerProcess
 {
 public:
-    void OnError(ConnectionInterface& connection, const asio::error_code& ec, const std::source_location& location)
+    void OnError(ConnectionInterface& connection, const Brilliant::Network::error_code& ec, const std::source_location& location)
     {
         std::cout << ec.value() << ' ' << ec.message() << ' ' << location.file_name() << ' ' << location.function_name() << " line: " << location.line() << '\n';
     }
 
-    std::size_t ReadCompletion(ConnectionInterface& connection, const asio::error_code& ec, std::size_t n)
+    std::size_t ReadCompletion(ConnectionInterface& connection, const Brilliant::Network::error_code& ec, std::size_t n)
     {
         return sizeof(int) < n ? 0 : (sizeof(int) - n);
     }
@@ -70,7 +70,7 @@ public:
         std::cout << "Connection accepted\n";
     }
 
-    void OnAcceptorError(AcceptorInterface& acceptor, const asio::error_code& ec)
+    void OnAcceptorError(AcceptorInterface& acceptor, const Brilliant::Network::error_code& ec)
     {
         std::cout << "Acceptor error: " << ec.value() << ' ' << ec.message() << '\n';
     }

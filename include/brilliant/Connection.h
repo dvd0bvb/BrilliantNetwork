@@ -138,7 +138,7 @@ namespace Brilliant
                 }
             }
 
-            std::size_t ReadCompletion(const asio::error_code& ec, std::size_t n)
+            std::size_t ReadCompletion(const error_code& ec, std::size_t n)
             {
                 return process.ReadCompletion(*this, ec, n);
             }
@@ -160,7 +160,7 @@ namespace Brilliant
                 }
             }
 
-            void OnError(asio::error_code& ec, const std::source_location& loc = std::source_location::current())
+            void OnError(error_code& ec, const std::source_location& loc = std::source_location::current())
             {
                 process.OnError(*this, ec, loc);
                 Disconnect();

@@ -41,7 +41,7 @@ namespace Brilliant
             void AcceptOn(std::string_view service) requires (!is_datagram_protocol_v<protocol_type>)
             {
                 asio::co_spawn(context, [this, service]() mutable -> asio::awaitable<void> {                    
-                    asio::error_code ec{};
+                    error_code ec{};
                     auto& acceptor = acceptors.emplace_back(context);
                     InitAcceptor(acceptor, service, ec);
                     if (ec)
@@ -69,7 +69,7 @@ namespace Brilliant
 
             void AcceptOn(std::string_view service) requires (is_datagram_protocol_v<protocol_type>)
             {
-                asio::error_code ec{};
+                error_code ec{};
                 auto ep = MakeEndpointFromService<protocol_type>(service, ec);
                 if (ec)
                 {
@@ -85,7 +85,7 @@ namespace Brilliant
             void AcceptOn(std::string_view service, asio::ssl::context& ssl_context)
             {
                 asio::co_spawn(context, [this, service, &ssl_context]() mutable -> asio::awaitable<void> {
-                    asio::error_code ec{};
+                    error_code ec{};
                     auto& acceptor = acceptors.emplace_back(context);
                     InitAcceptor(acceptor, service, ec);
                     if (ec)
@@ -113,7 +113,7 @@ namespace Brilliant
             }
 
         private:
-            void InitAcceptor(acceptor_type& acceptor, std::string_view service, asio::error_code& ec)
+            void InitAcceptor(acceptor_type& acceptor, std::string_view service, error_code& ec)
             {
                 auto ep = MakeEndpointFromService<protocol_type>(service, ec);
                 if (ec)

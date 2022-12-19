@@ -8,7 +8,7 @@ namespace Brilliant
     namespace Network
     {
         template<class Protocol>
-        auto MakeEndpointFromService(std::string_view service, asio::error_code& ec) requires (!is_local_protocol_v<Protocol>)
+        auto MakeEndpointFromService(std::string_view service, error_code& ec) requires (!is_local_protocol_v<Protocol>)
         {
             std::uint16_t port{};
             auto [ptr, err] = std::from_chars(service.data(), service.data() + service.size(), port);
@@ -21,14 +21,14 @@ namespace Brilliant
         }
 
         template<class Protocol>
-        auto MakeEndpointFromService(std::string_view service, asio::error_code&) requires (is_local_protocol_v<Protocol>)
+        auto MakeEndpointFromService(std::string_view service, error_code&) requires (is_local_protocol_v<Protocol>)
         {
             return typename Protocol::endpoint{ service };
         }
 
         template<class Protocol>
         asio::awaitable<typename asio::ip::basic_resolver<Protocol>::results_type>
-            ResolveEndpoints(asio::any_io_executor exec, std::string_view host, std::string_view service, asio::error_code& ec)
+            ResolveEndpoints(asio::any_io_executor exec, std::string_view host, std::string_view service, error_code& ec)
             requires (!is_local_protocol_v<Protocol>)
         {
             asio::ip::basic_resolver<Protocol> resolver(exec);
@@ -37,7 +37,7 @@ namespace Brilliant
 
         template<class Protocol>
         asio::awaitable<typename asio::ip::basic_resolver<Protocol>::results_type>
-            ResolveEndpoints(asio::any_io_executor exec, std::string_view host, std::string_view service, asio::error_code& ec)
+            ResolveEndpoints(asio::any_io_executor exec, std::string_view host, std::string_view service, error_code& ec)
             requires(is_local_protocol_v<Protocol>)
         {
             asio::ip::basic_resolver<Protocol> resolver(exec);

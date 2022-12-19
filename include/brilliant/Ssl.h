@@ -9,11 +9,11 @@
 #pragma warning(disable : 4996)
 #endif
 
-//if standalone asio
+#ifdef ASIO_STANDALONE
 #include <asio/ssl.hpp>
-//else if boost.asio
-//#inculde <boost/asio/ssl.hpp>
-//endif
+#else
+#include <boost/asio/ssl.hpp>
+#endif
 
 #ifdef BRILLIANT_NETWORK_DISABLE_WARN_4996
 #pragma warning(default : 4996)

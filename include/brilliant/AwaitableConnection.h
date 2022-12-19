@@ -23,9 +23,9 @@ namespace Brilliant
 
             }
 
-            asio::awaitable<asio::error_code> Connect()
+            asio::awaitable<error_code> Connect()
             {
-                asio::error_code ec;
+                error_code ec;
 
                 if constexpr (is_ssl_wrapped_v<socket_type>)
                 {
@@ -39,9 +39,9 @@ namespace Brilliant
                 co_return ec;
             }
 
-            asio::awaitable<asio::error_code> Connect(std::string_view host, std::string_view service)
+            asio::awaitable<error_code> Connect(std::string_view host, std::string_view service)
             {
-                asio::error_code ec;
+                error_code ec;
                 auto results = co_await ResolveEndpoints<protocol_type>(socket.get_executor(), host, service, ec);
 
                 if (ec) { co_return ec; }
@@ -59,9 +59,9 @@ namespace Brilliant
                 co_return ec;
             }
 
-            asio::error_code Disconnect()
+            error_code Disconnect()
             {
-                asio::error_code ec;
+                error_code ec;
                 socket.lowest_layer().cancel(ec);
                 if (ec) { return ec; }
 
@@ -88,9 +88,9 @@ namespace Brilliant
                 return socket.lowest_layer().is_open();
             }
 
-            asio::awaitable<std::pair<std::size_t, asio::error_code>> Send(const asio::const_buffer& data)
+            asio::awaitable<std::pair<std::size_t, error_code>> Send(const asio::const_buffer& data)
             {
-                asio::error_code ec;
+                error_code ec;
                 std::size_t bytes_written = 0;
 
                 if constexpr (is_datagram_protocol_v<protocol_type>)
@@ -105,9 +105,9 @@ namespace Brilliant
                 co_return std::make_pair(bytes_written, ec);
             }
 
-            asio::awaitable<std::pair<std::size_t, asio::error_code>> ReadInto(const asio::mutable_buffer& data)
+            asio::awaitable<std::pair<std::size_t, error_code>> ReadInto(const asio::mutable_buffer& data)
             {
-                asio::error_code ec;
+                error_code ec;
                 std::size_t bytes_read = 0;
 
                 if constexpr (is_datagram_protocol_v<protocol_type>)
