@@ -11,120 +11,69 @@ namespace Brilliant
 {
     namespace Network
     {
-        template<class Socket>
-        class AwaitableConnection : public AwaitableConnectionInterface
+        template<class Protocol>
+        class AwaitableConnection
         {        
         public:
-            using socket_type = Socket;
-            using protocol_type = socket_protocol_type_t<socket_type>;
+            using protocol_type = Protocol;
+            using socket_type = typename protocol_type::socket_type;
 
-            AwaitableConnection(Socket sock) : socket(std::move(sock))
+            AwaitableConnection(socket_type sock) : 
+                socket(std::move(sock))
             {
 
             }
 
             asio::awaitable<error_code> Connect()
             {
-                error_code ec;
-
-                if constexpr (is_ssl_wrapped_v<socket_type>)
-                {
-                    co_await socket.async_handshake(socket.server, asio::redirect_error(asio::use_awaitable, ec));
-                    if (ec)
-                    {
-                        co_return ec;
-                    }
-                }
-
-                co_return ec;
+                return impl.Connect(socket);
             }
 
             asio::awaitable<error_code> Connect(std::string_view host, std::string_view service)
             {
-                error_code ec;
-                auto results = co_await ResolveEndpoints<protocol_type>(socket.get_executor(), host, service, ec);
-
-                if (ec) { co_return ec; }
-
-                remote_endpoint = co_await asio::async_connect(socket.lowest_layer(), results, asio::redirect_error(asio::use_awaitable, ec));
-
-                if (ec) { co_return ec; }
-
-                if constexpr (is_ssl_wrapped_v<socket_type>)
-                {
-                    co_await socket.async_handshake(socket.client, asio::redirect_error(asio::use_awaitable, ec));
-                    if (ec) { co_return ec; }
-                }
-
-                co_return ec;
+                auto result = co_await impl.Connect(socket, host, service);
+                remote_endpoint = std::get<typename protocol_type::endpoint_type>(result);
+                co_return std::get<error_code>(result);
             }
 
             error_code Disconnect()
             {
-                error_code ec;
-                socket.lowest_layer().cancel(ec);
-                if (ec) { return ec; }
-
-                if (IsConnected())
-                {
-                    if constexpr (is_ssl_wrapped_v<socket_type>)
-                    {
-                        socket.shutdown(ec);
-                        if (ec) { return ec; }
-                    }
-
-                    socket.lowest_layer().shutdown(socket_type::lowest_layer_type::shutdown_both, ec);
-                    if (ec) { return ec; }
-
-                    socket.lowest_layer().close(ec);
-                    if (ec) { return ec; }
-                }
-
-                return ec;
+                return impl.Disconnect(socket);
             }
 
             bool IsConnected() const
             {
-                return socket.lowest_layer().is_open();
+                return impl.IsConnected(socket);
             }
 
             asio::awaitable<std::pair<std::size_t, error_code>> Send(const asio::const_buffer& data)
             {
-                error_code ec;
-                std::size_t bytes_written = 0;
-
-                if constexpr (is_datagram_protocol_v<protocol_type>)
+                if constexpr (is_datagram_protocol_v<typename protocol_type::protocol_type>)
                 {
-                    bytes_written = co_await socket.async_send_to(data, remote_endpoint, asio::redirect_error(asio::use_awaitable, ec));
+                    return impl.Send(socket, remote_endpoint, data);
                 }
                 else
                 {
-                    bytes_written = co_await asio::async_write(socket, data, asio::redirect_error(asio::use_awaitable, ec));
+                    return impl.Send(socket, data);
                 }
-
-                co_return std::make_pair(bytes_written, ec);
             }
 
             asio::awaitable<std::pair<std::size_t, error_code>> ReadInto(const asio::mutable_buffer& data)
             {
-                error_code ec;
-                std::size_t bytes_read = 0;
-
-                if constexpr (is_datagram_protocol_v<protocol_type>)
+                if constexpr (is_datagram_protocol_v<typename protocol_type::protocol_type>)
                 {
-                    bytes_read = co_await socket.async_receive_from(data, remote_endpoint, asio::redirect_error(asio::use_awaitable, ec));
+                    return impl.ReadInto(socket, remote_endpoint, data);
                 }
                 else
                 {
-                    bytes_read = co_await asio::async_read(socket, data, asio::redirect_error(asio::use_awaitable, ec));
+                    return impl.ReadInto(socket, data);
                 }
-
-                co_return std::make_pair(bytes_read, ec);
             }
 
         private:
             socket_type socket;
-            typename protocol_type::endpoint remote_endpoint;
+            typename protocol_type::endpoint_type remote_endpoint;
+            protocol_type impl;
         };
     }
 }
