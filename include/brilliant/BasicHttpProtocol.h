@@ -36,13 +36,19 @@ namespace Brilliant
 
                 if (ec) { co_return std::make_pair(endpoint_type{}, ec); }
 
-                auto& lowest_layer = socket.lowest_layer();
-                auto ep = co_await lowest_layer.async_connect(lowest_layer, results, asio::redirect_error(asio::use_awaitable, ec));
-                if (ec) { co_return std::make_pair(endpoint_type{}, ec); }
+                endpoint_type ep{};
 
                 if constexpr (UseSsl)
                 {
+                    ep = co_await boost::beast::get_lowest_layer(socket).async_connect(results, asio::redirect_error(asio::use_awaitable, ec));
+                    if (ec) { co_return std::make_pair(endpoint_type{}, ec); };
+
                     co_await socket.async_handshake(socket.client, asio::redirect_error(asio::use_awaitable, ec));
+                    if (ec) { co_return std::make_pair(endpoint_type{}, ec); }
+                }
+                else
+                {
+                    ep = co_await socket.async_connect(results, asio::redirect_error(asio::use_awaitable, ec));
                     if (ec) { co_return std::make_pair(endpoint_type{}, ec); }
                 }
 
@@ -52,10 +58,13 @@ namespace Brilliant
             error_code Disconnect(socket_type& socket)
             {
                 error_code ec{};
-                auto& lowest_layer = socket.lowest_layer();
 
-                lowest_layer.cancel(ec);
-                if (ec) { return ec; }
+                auto& lowest_layer = [&socket] () mutable -> auto& {
+                    if constexpr (UseSsl) { return boost::beast::get_lowest_layer(socket); }
+                    else { return socket; }
+                }();
+
+                lowest_layer.cancel();
 
                 if (IsConnected(socket))
                 {
@@ -65,10 +74,10 @@ namespace Brilliant
                         if (ec) { return ec; }
                     }
 
-                    lowest_layer.shutdown(socket_type::shutdown_both, ec);
-                    if (ec) { return ec; }
+                    lowest_layer.socket().shutdown(lowest_layer.socket().shutdown_both, ec);
+                    //not connected, errors happen sometimes
 
-                    lowest_layer.close(ec);
+                    lowest_layer.close(); //will this throw
                 }
 
                 return ec;
@@ -76,21 +85,38 @@ namespace Brilliant
 
             bool IsConnected(const socket_type& socket) const
             {
-                return socket.lowest_layer().is_open();
+                if constexpr (UseSsl)
+                {
+                    return boost::beast::get_lowest_layer(socket).socket().is_open();
+                }
+                else
+                {
+                    return socket.socket().is_open();
+                }
             }
 
-            asio::awaitable<std::pair<std::size_t, error_code>> Send(socket_type& socket, const asio::const_buffer& data)
+            template<bool B, class Body, class Fields>
+            asio::awaitable<std::pair<std::size_t, error_code>> Send(socket_type& socket, const boost::beast::http::message<B, Body, Fields>& data)
             {
                 error_code ec{};
                 const std::size_t bytes_written = co_await boost::beast::http::async_write(socket, data, asio::redirect_error(asio::use_awaitable, ec));
                 co_return std::make_pair(bytes_written, ec);
             }
 
-            asio::awaitable<std::pair<std::size_t, error_code>> ReadInto(socket_type& socket, const asio::mutable_buffer& data)
+            template<bool B, class Body, class Fields>
+            asio::awaitable<std::pair<std::size_t, error_code>> ReadInto(socket_type& socket, boost::beast::http::message<B, Body, Fields>& data)
             {
                 error_code ec{};
-                const std::size_t bytes_read = co_await boost::beast::http::async_read(socket, data, asio::redirect_error(asio::use_awaitable, ec));
+                boost::beast::flat_buffer buffer;
+                const std::size_t bytes_read = co_await boost::beast::http::async_read(socket, buffer, data, asio::redirect_error(asio::use_awaitable, ec));
                 co_return std::make_pair(bytes_read, ec);
+            }
+
+            static asio::experimental::coro<void, error_code> Accept(acceptor_type& acceptor, socket_type& socket)
+            {
+                //coro can't default construct socket so need to use this overload of async_accept
+                co_await acceptor.async_accept(socket.socket(), asio::experimental::use_coro);
+                co_return error_code{};
             }
         };
 

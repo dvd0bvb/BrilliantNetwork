@@ -64,7 +64,7 @@ namespace Brilliant
                         if (ec) { return ec; }
                     }
 
-                    lowest_layer.shutdown(socket_type::shutdown_both, ec);
+                    lowest_layer.shutdown(protocol_type::socket::shutdown_both, ec);
                     if (ec) { return ec; }
 
                     lowest_layer.close(ec);
@@ -108,6 +108,12 @@ namespace Brilliant
                 error_code ec{};
                 const std::size_t bytes_read = co_await socket.async_receive_from(data, destination, asio::redirect_error(asio::use_awaitable, ec));
                 co_return std::make_pair(bytes_read, ec);
+            }
+
+            static asio::experimental::coro<void, error_code> Accept(acceptor_type& acceptor, socket_type& socket)
+            {
+                co_await acceptor.async_accept(socket, asio::experimental::use_coro);
+                co_return error_code{};
             }
         };
 

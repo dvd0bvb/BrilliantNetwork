@@ -16,14 +16,14 @@ namespace Brilliant
             using socket_type = typename protocol_type::socket_type;
             using connection_type = AwaitableConnection<protocol_type>;
 
-            AwaitableClient(asio::io_context& context) : 
-                connection(connection_type(socket_type{ context }))
+            AwaitableClient(asio::any_io_executor executor) : 
+                connection(connection_type(socket_type{ executor }))
             {
 
             }
 
-            AwaitableClient(asio::io_context& context, asio::ssl::context& ssl) : 
-                connection(connection_type(socket_type{ context, ssl }))
+            AwaitableClient(asio::any_io_executor executor, asio::ssl::context& ssl) : 
+                connection(connection_type(socket_type{ executor, ssl }))
             {
 
             }
@@ -39,9 +39,9 @@ namespace Brilliant
                 return connection.Connect(host, service);
             }
 
-            void Disconnect()
+            error_code Disconnect()
             {
-                connection.Disconnect();
+                return connection.Disconnect();
             }
 
             template<class T>
