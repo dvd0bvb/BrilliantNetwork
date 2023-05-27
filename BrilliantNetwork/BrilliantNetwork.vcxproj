@@ -161,11 +161,13 @@
     <ClInclude Include="..\include\brilliant\AwaitableConnection.h" />
     <ClInclude Include="..\include\brilliant\AwaitableConnectionInterface.h" />
     <ClInclude Include="..\include\brilliant\AwaitableServer.h" />
+    <ClInclude Include="..\include\brilliant\BasicProtocol.h" />
     <ClInclude Include="..\include\brilliant\Client.h" />
     <ClInclude Include="..\include\brilliant\Connection.h" />
     <ClInclude Include="..\include\brilliant\ConnectionInterface.h" />
     <ClInclude Include="..\include\brilliant\ConnectionProcess.h" />
     <ClInclude Include="..\include\brilliant\EndpointHelper.h" />
+    <ClInclude Include="..\include\brilliant\BasicHttpProtocol.h" />
     <ClInclude Include="..\include\brilliant\Server.h" />
     <ClInclude Include="..\include\brilliant\ServerProcess.h" />
     <ClInclude Include="..\include\brilliant\SocketTraits.h" />

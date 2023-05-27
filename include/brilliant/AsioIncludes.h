@@ -20,6 +20,10 @@ namespace Brilliant
     }
 }
 
+#ifdef ASIO_HAS_LOCAL_SOCKETS
+#define BRILLIANT_NETWORK_HAS_LOCAL_SOCKETS
+#endif
+
 #else
 
 #include <boost/asio.hpp>
@@ -34,5 +38,17 @@ namespace Brilliant
         using error_code = boost::system::error_code; //name alias for error code
     } 
 }
+
+#ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
+#define BRILLIANT_NETWORK_HAS_LOCAL_SOCKETS
+#endif
+
+#ifndef BRILLIANT_NETWORK_NO_BOOST_BEAST
+#define BRILLIANT_NETWORK_HAS_BOOST_BEAST
+#endif
+
+#ifdef BRILLIANT_NETWORK_HAS_BOOST_BEAST
+#include <boost/beast.hpp>
+#endif
 
 #endif

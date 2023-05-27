@@ -14,21 +14,43 @@ namespace Brilliant
         {
         public:
             using protocol_type = Protocol;
-            using acceptor_type = asio::basic_socket_acceptor<protocol_type>;
+            using base_protocol_type = typename Protocol::protocol_type;
+            using acceptor_type = typename protocol_type::acceptor_type;
+            using connection_type = AwaitableConnection<protocol_type>;
 
-            AwaitableServer(asio::io_context& ctx) : 
-                context(ctx)
+            AwaitableServer(asio::any_io_executor e) : 
+                executor(e)
             {
 
             }
 
-            //TODO: Consider returning a ref to the acceptor so we can stop it
-            asio::experimental::generator<AwaitableConnectionInterface*>
-                AcceptOn(std::string_view service) 
-                requires (!is_datagram_protocol_v<protocol_type>)
+            ~AwaitableServer()
             {
+                Disconnect();
+            }
+
+            void Disconnect()
+            {
+                for (auto& acceptor : acceptors)
+                {
+                    acceptor.cancel();
+                }
+
+                for (auto& connection : connections)
+                {
+                    connection.Disconnect();
+                }
+            }
+
+            //TODO: Consider returning a ref/handle to the acceptor so we can stop it
+            asio::experimental::generator<connection_type*>
+                AcceptOn(std::string_view service) 
+                requires (!is_datagram_protocol_v<base_protocol_type>)
+            {
+                static_assert(!is_ssl_wrapped_v<typename protocol_type::socket_type>, "Cannot use protocol with socket type of asio::ssl::stream<T> with this overload");
+
                 error_code ec{};
-                auto& acceptor = acceptors.emplace_back(context); //use basic_socket_acceptor in case of generic protocol
+                auto& acceptor = acceptors.emplace_back(co_await asio::this_coro::executor); //use basic_socket_acceptor in case of generic protocol
                 InitAcceptor(acceptor, service, ec);
                 if (ec)
                 {
@@ -37,18 +59,16 @@ namespace Brilliant
 
                 while (!ec && acceptor.is_open())
                 {
-                    typename protocol_type::socket socket{ context };
-                    //need to use this overload of async_accept because socket does not have a default ctor
-                    //coro requires that yield value has default ctor
-                    co_await acceptor.async_accept(socket, asio::experimental::use_coro);
-                    auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<typename protocol_type::socket>>(std::move(socket)));
-                    co_yield result.get();
+                    typename protocol_type::socket_type socket{ co_await asio::this_coro::executor };
+                    co_await protocol_type::Accept(acceptor, socket);
+                    auto& result = connections.emplace_back(std::move(socket));
+                    co_yield &result;
                 }
             }
 
-            asio::awaitable<AwaitableConnectionInterface*>
+            asio::awaitable<connection_type*>
                 AcceptOn(std::string_view service)
-                requires (is_datagram_protocol_v<protocol_type>)
+                requires (is_datagram_protocol_v<base_protocol_type>)
             {
                 error_code ec{};
                 auto ep = MakeEndpointFromService<protocol_type>(service, ec);
@@ -57,46 +77,50 @@ namespace Brilliant
                     co_return nullptr;
                 }
 
-                typename protocol_type::socket socket{ context, ep };
-                auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<typename protocol_type::socket>>(std::move(socket)));
-                co_return result.get();
+                typename protocol_type::socket_type socket{ co_await asio::this_coro::executor, ep };
+                auto& result = connections.emplace_back(std::move(socket));
+                co_return &result;
             }
 
-            asio::experimental::generator<AwaitableConnectionInterface*>
+            //TODO: return type should include error code
+            //in case of error should return nullptr and the error
+            asio::experimental::generator<connection_type*>
                 AcceptOn(std::string_view service, asio::ssl::context& ssl)
             {
-                static_assert(!is_datagram_protocol_v<protocol_type>, "Cannot use ssl with a datagram protocol");
+                static_assert(!is_datagram_protocol_v<base_protocol_type>, "Cannot use ssl with a datagram protocol");
+                static_assert(is_ssl_wrapped_v<typename protocol_type::socket_type>, "Must provide Protocol socket type of asio::ssl::stream<T>");
 
                 error_code ec{};
-                auto& acceptor = acceptors.emplace_back(context); //use basic_socket_acceptor in case of generic protocol
+                auto& acceptor = acceptors.emplace_back(co_await asio::this_coro::executor); //use basic_socket_acceptor in case of generic protocol
                 InitAcceptor(acceptor, service, ec);
                 if (ec)
                 {
                     acceptors.pop_back();
                 }
 
-                while (!ec && acceptor.is_open())
+                while (acceptor.is_open())
                 {
-                    typename protocol_type::socket socket{ context };
-                    //need to use this overload of async_accept because socket does not have a default ctor
-                    //coro requires that yield value has default ctor
-                    co_await acceptor.async_accept(socket, asio::experimental::use_coro);
+                    typename base_protocol_type::socket socket{ co_await asio::this_coro::executor };
+                    // //need to use this overload of async_accept because socket does not have a default ctor
+                    // //coro requires that yield value has default ctor
+                    co_await acceptor.async_accept(socket, asio::experimental::use_coro); //TODO: this will throw, asio::redirect_error() will not compile
 
-                    asio::ssl::stream<typename protocol_type::socket> ssl_socket{ std::move(socket), ssl };
-                    auto& result = connections.emplace_back(std::make_unique<AwaitableConnection<std::decay_t<decltype(ssl_socket)>>>(std::move(ssl_socket)));
-                    co_yield result.get();
+                    typename protocol_type::socket_type ssl_socket{ std::move(socket), ssl };
+                    auto& result = connections.emplace_back(std::move(ssl_socket));
+                    co_yield &result;
                 }
             }
 
             //allows declaration of member coros without needing executor as first argument
             auto get_executor()
             {
-                return context.get_executor();
+                return executor;
             }
 
         private:
             void InitAcceptor(acceptor_type& acceptor, std::string_view service, error_code& ec)
             {
+                //TODO: use resolver here?
                 auto ep = MakeEndpointFromService<protocol_type>(service, ec);
                 if (ec)
                 {
@@ -112,9 +136,9 @@ namespace Brilliant
                 acceptor.listen();
             }
 
-            asio::io_context& context;
+            asio::any_io_executor executor;
             std::vector<acceptor_type> acceptors;
-            std::vector<std::unique_ptr<AwaitableConnectionInterface>> connections;
+            std::vector<connection_type> connections;
         };
     }
 }
