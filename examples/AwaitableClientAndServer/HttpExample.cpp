@@ -1,3 +1,12 @@
+/**
+ * @file HttpExample.cpp
+ * @author David Brill (6david6brill6@gmail.com)
+ * 
+ * @copyright Copyright (c) 2023
+ * Distributed under the Apache License 2.0 (see accompanying
+ * file LICENSE or copy at http://www.apache.org/licenses/)
+ */
+
 #include <iostream>
 #include "BrilliantNetwork.h"
 #include "HttpExample.h"
@@ -16,7 +25,7 @@ asio::awaitable<void> ServerProc(Brilliant::Network::AwaitableConnection<Brillia
             std::cout << "Server error: " << ec.message() << '\n';
             break;
         } 
-        std::cout << "Server read: " << req;
+        std::cout << "Server read: " << req << '\n';
 
         if (req.body() == "Bye server")
         {

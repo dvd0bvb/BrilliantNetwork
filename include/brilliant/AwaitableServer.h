@@ -1,3 +1,14 @@
+/**
+ * @file AwaitableServer.h
+ * @author David Brill (6david6brill6@gmail.com)
+ * 
+ * @copyright Copyright (c) 2023
+ * Distributed under the Apache License 2.0 (see accompanying
+ * file LICENSE or copy at http://www.apache.org/licenses/)
+ * 
+ * @brief Defines the AwaitableServer class
+ */
+
 #pragma once
 
 #include <charconv>
@@ -9,6 +20,11 @@ namespace Brilliant
 {
     namespace Network
     {
+        /**
+         * @class AwaitableServer
+         * @brief Provides an interface for awaitable server types, accepts incoming connections
+         * @tparam Protocol The protocol implementation type
+         */
         template<class Protocol>
         class AwaitableServer
         {
@@ -18,17 +34,30 @@ namespace Brilliant
             using acceptor_type = typename protocol_type::acceptor_type;
             using connection_type = AwaitableConnection<protocol_type>;
 
+            /**
+             * @brief Construct a new Awaitable Server object
+             * 
+             * @param e The executor for asio coroutines spawned by the AwaitableServer object
+             */
             AwaitableServer(asio::any_io_executor e) : 
                 executor(e)
             {
 
             }
 
+            /**
+             * @brief Destroy the Awaitable Server object
+             * 
+             */
             ~AwaitableServer()
             {
                 Disconnect();
             }
 
+            /**
+             * @brief Stop all acceptors and disconnect all active connections
+             * 
+             */
             void Disconnect()
             {
                 for (auto& acceptor : acceptors)
@@ -43,6 +72,11 @@ namespace Brilliant
             }
 
             //TODO: Consider returning a ref/handle to the acceptor so we can stop it
+            /**
+             * @brief Accept connections on the given service
+             * @param service The service to accept connections on as a string
+             * @return A generator of pointers to connections
+             */
             asio::experimental::generator<connection_type*>
                 AcceptOn(std::string_view service) 
                 requires (!is_datagram_protocol_v<base_protocol_type>)
@@ -66,6 +100,11 @@ namespace Brilliant
                 }
             }
 
+            /**
+             * @brief Accept connections on the given service
+             * @param service The service to accept connections on as a string
+             * @return A generator of pointers to connections
+             */
             asio::awaitable<connection_type*>
                 AcceptOn(std::string_view service)
                 requires (is_datagram_protocol_v<base_protocol_type>)
@@ -84,6 +123,12 @@ namespace Brilliant
 
             //TODO: return type should include error code
             //in case of error should return nullptr and the error
+            /**
+             * @brief Accept ssl wrapped connections on the given service 
+             * @param service The service to accept on as a string
+             * @param ssl The ssl context to use for incoming connections
+             * @return A generator of pointers to connections
+             */
             asio::experimental::generator<connection_type*>
                 AcceptOn(std::string_view service, asio::ssl::context& ssl)
             {
@@ -111,13 +156,25 @@ namespace Brilliant
                 }
             }
 
-            //allows declaration of member coros without needing executor as first argument
+            /**
+             * @brief Get the executor object. Allows declaration of member asio coroutines 
+             * without needing the executor as the first parameter
+             * 
+             * @return The executor
+             */
             auto get_executor()
             {
                 return executor;
             }
 
         private:
+            /**
+             * @brief Initialize an acceptor
+             * 
+             * @param acceptor 
+             * @param service 
+             * @param ec 
+             */
             void InitAcceptor(acceptor_type& acceptor, std::string_view service, error_code& ec)
             {
                 //TODO: use resolver here?
@@ -136,8 +193,13 @@ namespace Brilliant
                 acceptor.listen();
             }
 
+            //! The asio executor used for asio coroutines
             asio::any_io_executor executor;
+
+            //! A vector of any acceptors created and managed by the AwaitableServer
             std::vector<acceptor_type> acceptors;
+
+            //! A vector of connections created and managed by the AwaitableServer
             std::vector<connection_type> connections;
         };
     }

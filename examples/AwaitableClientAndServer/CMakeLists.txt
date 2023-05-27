@@ -1,3 +1,10 @@
+# CMakeLists.txt
+# David Brill
+#
+# Copyright (c) 2023
+# Distributed under the Apache License 2.0 (see accompanying
+# file LICENSE or copy at http://www.apache.org/licenses/)
+
 cmake_minimum_required(VERSION 3.24)
 
 #lib requires c++20
