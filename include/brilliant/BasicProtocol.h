@@ -201,6 +201,8 @@ namespace Brilliant
         using UdpProtocol = BasicProtocol<asio::ip::udp>;
 
         //using Icmp = BasicProtocol<asio::ip::icmp>; //TODO: test this
+
+        //TODO: investigate adding raw protocol
         
 #ifdef BRILLIANT_NETWORK_HAS_LOCAL_SOCKETS
         //! Convenience alias for a local stream protocol

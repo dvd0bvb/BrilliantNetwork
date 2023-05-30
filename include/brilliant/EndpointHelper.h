@@ -39,6 +39,7 @@ namespace Brilliant
                 ec = std::make_error_code(err);
             }
 
+            //TODO: Investigate customization of v4 vs v6
             return typename Protocol::endpoint_type{ Protocol::protocol_type::v4(), port };
         }
 
